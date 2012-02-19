@@ -194,6 +194,7 @@
     <ClCompile Include="kdtree.cpp" />
     <ClCompile Include="minpq.cpp" />
     <ClCompile Include="sift2.cpp" />
+    <ClCompile Include="SIFTOpenCL.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="utils.cpp" />
@@ -226,6 +227,7 @@
     <ClInclude Include="KeyPoint.h" />
     <ClInclude Include="minpq.h" />
     <ClInclude Include="sift2.h" />
+    <ClInclude Include="SIFTOpenCL.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="GPU\Subtract.h" />
     <ClInclude Include="targetver.h" />

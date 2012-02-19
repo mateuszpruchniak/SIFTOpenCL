@@ -151,7 +151,7 @@ int SIFTGPU::_sift_features( IplImage* img, feature** feat, int intvls,
 		if( img_dbl )
 			adjustForImgDbl( features );
 
-		calc_feature_oris( features, gauss_pyr );
+		CalcFeatureOris( features, gauss_pyr );
 		
 
 		clock_t start, finish;
@@ -1061,7 +1061,7 @@ there is more than one dominant orientation at a given feature location.
 @param features an array of image features
 @param gauss_pyr Gaussian scale space pyramid
 */
- void SIFTGPU::calc_feature_oris( CvSeq* features, IplImage*** gauss_pyr )
+ void SIFTGPU::CalcFeatureOris( CvSeq* features, IplImage*** gauss_pyr )
 {
 	feature* feat;
 	struct detection_data* ddata;

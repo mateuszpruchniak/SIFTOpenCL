@@ -1,23 +1,8 @@
-/**@file
-Functions for detecting SIFT image features.
 
-For more information, refer to:
+#ifndef SIFTOPENCL_H
+#define SIFTOPENCL_H
 
-Lowe, D.  Distinctive image features from scale-invariant keypoints.
-<EM>International Journal of Computer Vision, 60</EM>, 2 (2004),
-pp.91--110.
 
-Copyright (C) 2006-2010  Rob Hess <hess@eecs.oregonstate.edu>
-Note: The SIFT algorithm is patented in the United States and cannot be
-used in commercial products without a license from the University of
-British Columbia.  For more information, refer to the file LICENSE.ubc
-that accompanied this distribution.
-
-@version 1.1.2-20100521
-*/
-
-#ifndef SIFT2_H
-#define SIFT2_H
 
 #include "GPU\MeanFilter.h"
 #include "GPU\Subtract.h"
@@ -111,61 +96,22 @@ struct Feature;
 #define	SIFTCPU		0
 
 
-class SIFTGPU
+
+
+class SIFTOpenCL
 {
-	public:
-
-		char* img_file_name;
-		char* out_file_name;
-		char* out_img_name;
-		int display;
-		int intvls;
-		float sigma;
-		float contr_thr;
-		int curv_thr;
-		int img_dbl;
-		int descr_width;
-		int descr_hist_bins;
-
-		feature* featureGPU;
-		int iteratorFGPU;
-
-		MeanFilter* meanFilter;
-		Subtract* subtract;
-		DetectExtrema* detectExt;
-		
-
-		IplImage*** gauss_pyr;
+private:
 
 
-		SIFTGPU();
 
-		void DoSift();
 
-		int _sift_features( IplImage* img, feature** feat, int intvls,
-						  float sigma, float contr_thr, int curv_thr,
-						  int img_dbl, int descr_width, int descr_hist_bins );
 
-		int sift_features( IplImage* img, feature** feat );
+public:
 
-		IplImage* createInitImg( IplImage*, int, float );
 
-		IplImage*** buildGaussPyr( IplImage*, int, int, float );
 
-		IplImage*** buildDogPyr( IplImage***, int, int );
-
-		CvSeq* scaleSpaceExtrema( IplImage***, int, int, float, int, CvMemStorage*);
-
-		void calcFeatureScales( CvSeq*, float, int );
-
-		void adjustForImgDbl( CvSeq* );
-
-		void CalcFeatureOris( CvSeq*, IplImage*** );
 };
 
 
 
 #endif
-
-
-
