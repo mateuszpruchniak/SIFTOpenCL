@@ -13,7 +13,6 @@
 #include <time.h>
 #include "GPUTransferManager.h"
 #include "stdafx.h"
-#include "sift2.h"
 #include "SIFTOpenCL.h"
 #include "utils.h"
 #include "kdtree.h"

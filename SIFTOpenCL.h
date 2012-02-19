@@ -18,15 +18,15 @@ using namespace std;
 /******************************** Structures *********************************/
 
 ///** holds feature data relevant to detection */
-//struct detection_data
-//{
-//	int r;
-//	int c;
-//	int octv;
-//	int intvl;
-//	float subintvl;
-//	float scl_octv;
-//};
+struct detection_data
+{
+	int r;
+	int c;
+	int octv;
+	int intvl;
+	float subintvl;
+	float scl_octv;
+};
 
 
 /******************************* Defs and macros *****************************/
@@ -86,7 +86,7 @@ using namespace std;
 #define SIFT_INT_DESCR_FCTR 512.0
 
 /* returns a feature's detection data */
-#define feat_detection_data(f) ( (struct detection_data*)(f->feature_data) )
+#define FeatDetectionData(f) ( (struct detection_data*)(f->feature_data) )
 
 #define ROUND(x) ( ( x - (int)x ) <= 0.5 ? (int)x :  (int)x + 1 )
 
@@ -114,13 +114,24 @@ private:
 	DetectExtrema* detectExt;
 	
 	feature* feat;
+	IplImage*** gauss_pyr;
 
-
-	IplImage* createInitialImg( IplImage* img, int img_dbl, float sigma );
-	IplImage* convertToGray32( IplImage* img );
-
-
-
+	IplImage* CreateInitialImg( IplImage* img, int img_dbl, float sigma );
+	IplImage* ConvertToGray32( IplImage* img );
+	IplImage*** BuildGaussPyr( IplImage* base, int octvs, int intvls, float sigma );
+	IplImage* Downsample( IplImage* img );
+	IplImage*** BuildDogPyr( IplImage*** gauss_pyr, int octvs, int intvls );
+	CvSeq* ScaleSpaceExtrema( IplImage*** dog_pyr, int octvs, int intvls, float contr_thr, int curv_thr, CvMemStorage* storage );
+	feature* NewFeature( void );
+	float InterpContr( IplImage*** dog_pyr, int octv, int intvl, int r, int c, float xi, float xr, float xc );
+	void Hessian3D( IplImage*** dog_pyr, int octv, int intvl, int r, int c, float H[][3] );
+	CvMat* Deriv3D( IplImage*** dog_pyr, int octv, int intvl, int r, int c );
+	void InterpStep( IplImage*** dog_pyr, int octv, int intvl, int rr, int cc, float* xi, float* xr, float* xc );
+	feature* InterpExtremum( IplImage*** dog_pyr, int octv, int intvl, int r, int c, int intvls, float contr_thr );
+	int IsExtremum( IplImage*** dog_pyr, int octv, int intvl, int r, int c );
+	int IsTooEdgeLike( IplImage* dog_img, int r, int c, int curv_thr );
+	int FeatureCmp( void* feat1, void* feat2, void* param );
+	void ReleasePyr( IplImage**** pyr, int octvs, int n );
 
 public:
 
@@ -128,6 +139,10 @@ public:
 
 	bool DoSift(IplImage* img);
 	
+
+
+
+
 
 
 

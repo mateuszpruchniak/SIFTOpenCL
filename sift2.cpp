@@ -87,7 +87,22 @@ int SIFTGPU::sift_features( IplImage* img, feature** feat )
 							SIFT_DESCR_HIST_BINS );
 }
 
+IplImage* downsample( IplImage* img )
+{
+	int width = img->width / 2;
+	int height = img->height / 2;
 
+	if( width < 50 || height < 50 )
+	{
+		width = width*2;
+		height = height*2;
+	}
+	IplImage* smaller = cvCreateImage( cvSize( width, height),
+		img->depth, img->nChannels );
+	cvResize( img, smaller, CV_INTER_NN );
+
+	return smaller;
+}
 
 /**
 Finds SIFT features in an image using user-specified parameter values.  All
@@ -376,31 +391,6 @@ Builds Gaussian scale space pyramid from an image
 }
 
 
-
-/*
-Downsamples an image to a quarter of its size (half in each dimension)
-using nearest-neighbor interpolation
-
-@param img an image
-
-@return Returns an image whose dimensions are half those of img
-*/
- IplImage* downsample( IplImage* img )
-{
-	int width = img->width / 2;
-	int height = img->height / 2;
-
-	if( width < 50 || height < 50 )
-	{
-		width = width*2;
-		height = height*2;
-	}
-	IplImage* smaller = cvCreateImage( cvSize( width, height),
-		img->depth, img->nChannels );
-	cvResize( img, smaller, CV_INTER_NN );
-
-	return smaller;
-}
 
 
 

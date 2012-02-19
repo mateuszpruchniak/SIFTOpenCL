@@ -33,7 +33,7 @@ using namespace std;
 /******************************** Structures *********************************/
 
 /** holds feature data relevant to detection */
-struct detection_data
+typedef struct detection_data
 {
 	int r;
 	int c;
@@ -41,9 +41,7 @@ struct detection_data
 	int intvl;
 	float subintvl;
 	float scl_octv;
-};
-
-struct Feature;
+} detection_data;
 
 
 
