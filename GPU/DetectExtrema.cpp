@@ -7,7 +7,7 @@ DetectExtrema::~DetectExtrema(void)
 {
 }
 
-DetectExtrema::DetectExtrema(): GPUBase("C:\\Dropbox\\MGR\\GPUFeatureExtraction\\GPU\\OpenCL\\DetectExtrema.cl","ckDetect")
+DetectExtrema::DetectExtrema(): GPUBase("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\DetectExtrema.cl","ckDetect")
 {
 
 }

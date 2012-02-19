@@ -4,7 +4,7 @@
 
 
 
-Subtract::Subtract(): GPUBase("C:\\Dropbox\\MGR\\GPUFeatureExtraction\\GPU\\OpenCL\\Subtract.cl","ckSub")
+Subtract::Subtract(): GPUBase("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\Subtract.cl","ckSub")
 {
 
 }

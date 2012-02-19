@@ -40,7 +40,7 @@ GPUBase::GPUBase(char* source, char* KernelName)
 	oclPrintDevName(LOGBOTH, cdDevices[0]);
 
 	// Load OpenCL kernel
-	SourceOpenCLShared = oclLoadProgSource("C:\\Dropbox\\MGR\\GPUFeatureExtraction\\GPU\\OpenCL\\GPUCode.cl", "// My comment\n", &szKernelLength);
+	SourceOpenCLShared = oclLoadProgSource("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\GPUCode.cl", "// My comment\n", &szKernelLength);
 
 	SourceOpenCL = oclLoadProgSource(source, "// My comment\n", &szKernelLengthFilter);
 	szKernelLengthSum = szKernelLength + szKernelLengthFilter;
