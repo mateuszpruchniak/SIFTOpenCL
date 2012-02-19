@@ -17,19 +17,16 @@ using namespace std;
 
 /******************************** Structures *********************************/
 
-/** holds feature data relevant to detection */
-struct detection_data
-{
-	int r;
-	int c;
-	int octv;
-	int intvl;
-	float subintvl;
-	float scl_octv;
-};
-
-struct Feature;
-
+///** holds feature data relevant to detection */
+//struct detection_data
+//{
+//	int r;
+//	int c;
+//	int octv;
+//	int intvl;
+//	float subintvl;
+//	float scl_octv;
+//};
 
 
 /******************************* Defs and macros *****************************/
@@ -102,11 +99,37 @@ class SIFTOpenCL
 {
 private:
 
+	char* img_file_name;
+	char* out_file_name;
+	char* out_img_name;
+	int intvls;
+	float sigma;
+	float contr_thr;
+	int curv_thr;
+	int img_dbl;
+	int descr_width;
+	int descr_hist_bins;
+	MeanFilter* meanFilter;
+	Subtract* subtract;
+	DetectExtrema* detectExt;
+	
+	feature* feat;
+
+
+	IplImage* createInitialImg( IplImage* img, int img_dbl, float sigma );
+	IplImage* convertToGray32( IplImage* img );
 
 
 
 
 public:
+
+	SIFTOpenCL();
+
+	bool DoSift(IplImage* img);
+	
+
+
 
 
 
