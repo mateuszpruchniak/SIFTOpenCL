@@ -87,7 +87,7 @@
 
 
 	/* sort features by decreasing scale and move from CvSeq to array */
-	//cvSeqSort( features, (CvCmpFunc)FeatureCmp, NULL );
+	cvSeqSort( features, (CvCmpFunc)FeatureCmp, NULL );
 	n = features->total;
 	feat = (feature*)calloc( n, sizeof(feature) );
 	feat = (feature*)cvCvtSeqToArray( features, feat, CV_WHOLE_SEQ );
