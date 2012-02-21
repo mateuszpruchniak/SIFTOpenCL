@@ -50,7 +50,7 @@ int main()
 
 	char* img1_file = "c:\\box.jpg";
 	char* img2_file = "c:\\scene2.jpg";
-
+	IplImage* img1, * img2, *stacked;
 	char* img_file_name = "c:\\scene2.jpg";
 	char* out_file_name  = "c:\\h1.sift";;
 	char* out_img_name = "C:\\Users\\Mati\\Pictures\\sceneOut.jpg";
@@ -63,27 +63,42 @@ int main()
 	int descr_width = SIFT_DESCR_WIDTH;
 	int descr_hist_bins = SIFT_DESCR_HIST_BINS;
 	IplImage* img;
-	feature* features;
-	int n = 0;
+	feature* features1;
+	feature* features2;
+	feature* feat;
+	int n1 = 0;
+	int n2 = 0;
+	feature** nbrs;
+	struct kd_node* kd_root;
+	int i, k, m = 0;
+	double d0, d1;
+	CvPoint pt1, pt2;
+
 
 
 	SIFTOpenCL* siftOpenCL = new SIFTOpenCL();
+	SIFTOpenCL* siftOpenCL2 = new SIFTOpenCL();
 
 	fprintf( stderr, "Finding SIFT features...\n" );
-	img = cvLoadImage( img_file_name, 1 );
-	if( ! img )
-	{
-		fprintf( stderr, "unable to load image from %s", img_file_name );
-		exit( 1 );
-	}
+	
+	img1 = cvLoadImage( img1_file, 1 );
+	if( ! img1 )
+		printf( "unable to load image from %s", img1_file );
+	img2 = cvLoadImage( img2_file, 1 );
+	if( ! img2 )
+		printf( "unable to load image from %s", img2_file );
 
+	stacked = stack_imgs( img1, img2 );
 
 	clock_t start, finish;
 	double duration = 0;
 	start = clock();
 		
-		n = siftOpenCL->DoSift(img);
-		features = siftOpenCL->feat;
+		n1 = siftOpenCL->DoSift(img1);
+		features1 = siftOpenCL->feat;
+
+		n2 = siftOpenCL2->DoSift(img2);
+		features2 = siftOpenCL2->feat;
 
 	finish = clock();
 	duration = (double)(finish - start) / CLOCKS_PER_SEC;
@@ -91,23 +106,75 @@ int main()
 	cout << "SIFT " << SIFTCPU << ": ";;
 	cout << duration << endl;
 	cout << endl;
-	fprintf( stderr, "Found %d features.\n", n );
+	fprintf( stderr, "Found %d features1.\n", n1 );
+	fprintf( stderr, "Found %d features2.\n", n2 );
 
+	kd_root = kdtree_build( features2, n2 );
 
-
-	if( display )
+	for(i = 0; i < n1; i++ )
 	{
-		draw_features( img, features, n );
-		cvNamedWindow( img_file_name, 1 );
-		cvShowImage( img_file_name, img );
-		cvWaitKey(0);
+		feat = features1 + i;
+		k = kdtree_bbf_knn( kd_root, feat, 2, &nbrs, KDTREE_BBF_MAX_NN_CHKS );
+		if( k == 2 )
+		{
+			d0 = descr_dist_sq( feat, nbrs[0] );
+			d1 = descr_dist_sq( feat, nbrs[1] );
+			if( d0 < d1 * NN_SQ_DIST_RATIO_THR )
+			{
+				pt1 = cvPoint( cvRound( feat->x ), cvRound( feat->y ) );
+				pt2 = cvPoint( cvRound( nbrs[0]->x ), cvRound( nbrs[0]->y ) );
+				pt2.y += img1->height;
+				cvLine( stacked, pt1, pt2, CV_RGB(255,0,255), 1, 8, 0 );
+				m++;
+				features1[i].fwd_match = nbrs[0];
+			}
+		}
+		free( nbrs );
 	}
 
-	if( out_file_name != NULL )
-		export_features( out_file_name, features, n );
+	fprintf( stderr, "Found %d total matches\n", m );
+	cvNamedWindow( "Matches", 1 );
+	cvShowImage( "Matches", stacked );
+	cvWaitKey( 0 );
 
-	if( out_img_name != NULL )
-		cvSaveImage( out_img_name, img, NULL );
+
+	/* 
+	UNCOMMENT BELOW TO SEE HOW RANSAC FUNCTION WORKS
+
+	Note that this line above:
+
+	feat1[i].fwd_match = nbrs[0];
+
+	is important for the RANSAC function to work.
+	*/
+	/*
+	{
+		CvMat* H;
+		H = ransac_xform( feat1, n1, FEATURE_FWD_MATCH, lsq_homog, 4, 0.01,
+			homog_xfer_err, 3.0, NULL, NULL );
+		if( H )
+		{
+			IplImage* xformed;
+			xformed = cvCreateImage( cvGetSize( img2 ), IPL_DEPTH_8U, 3 );
+			cvWarpPerspective( img1, xformed, H, 
+				CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS,
+				cvScalarAll( 0 ) );
+			cvNamedWindow( "Xformed", 1 );
+			cvShowImage( "Xformed", xformed );
+			cvWaitKey( 0 );
+			cvReleaseImage( &xformed );
+			cvReleaseMat( &H );
+		}
+	}
+	*/
+
+	//cvReleaseImage( &stacked );
+	//cvReleaseImage( &img1 );
+	//cvReleaseImage( &img2 );
+	//kdtree_release( kd_root );
+	//free( feat1 );
+	//free( feat2 );
+	//return 0;
 
 
 	
@@ -124,12 +191,7 @@ int main()
 	//int n1, n2, k, i, m = 0;
 
 
-	//img1 = cvLoadImage( img1_file, 1 );
-	//if( ! img1 )
-	//	printf( "unable to load image from %s", img1_file );
-	//img2 = cvLoadImage( img2_file, 1 );
-	//if( ! img2 )
-	//	printf( "unable to load image from %s", img2_file );
+	
 
 	//stacked = stack_imgs( img1, img2 );
 
