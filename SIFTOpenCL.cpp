@@ -79,33 +79,6 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
 	features = ScaleSpaceExtrema( dog_pyr, octvs, intvls, contr_thr, curv_thr, storage );
 
-	
-	//if(SIFTCPU)
-	//{
-
-	//	calcFeatureScales( features, sigma, intvls );
-
-	//	if( img_dbl )
-	//		adjustForImgDbl( features );
-
-	//	CalcFeatureOris( features, gauss_pyr );
-	//	
-
-	//	clock_t start, finish;
-	//	double duration = 0;
-	//	start = clock();
-	//		compute_descriptors( features, gauss_pyr, descr_width, descr_hist_bins );
-	//	finish = clock();
-	//	duration = (double)(finish - start) / CLOCKS_PER_SEC;
-	//	cout << endl;
-	//	cout << "compute_descriptors " << SIFTCPU << ": ";;
-	//	cout << duration << endl;
-	//	cout << endl;
-	//}
-	//else
-	//{
-	//}
-
 
 	/* sort features by decreasing scale and move from CvSeq to array */
 	cvSeqSort( features, (CvCmpFunc)FeatureCmp, NULL );
