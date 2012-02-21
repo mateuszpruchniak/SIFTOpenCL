@@ -1,13 +1,9 @@
-
-
 #include "SIFTOpenCL.h"
 #include "imgfeatures.h"
 #include "utils.h"
 #include "stdafx.h"
 #include <cxcore.h>
 #include <cv.h>
-
-
 
 
 
