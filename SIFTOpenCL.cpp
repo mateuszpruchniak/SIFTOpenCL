@@ -9,7 +9,6 @@
 
  SIFTOpenCL::SIFTOpenCL()
  {
-	
 	 intvls = SIFT_INTVLS;
 	 sigma = SIFT_SIGMA;
 	 contr_thr = SIFT_CONTR_THR;
@@ -18,11 +17,9 @@
 	 descr_width = SIFT_DESCR_WIDTH;
 	 descr_hist_bins = SIFT_DESCR_HIST_BINS;
 
-
 	 meanFilter = new MeanFilter();
 	 subtract = new Subtract();
 	 detectExt = new DetectExtrema();
-
  }
 
    /*

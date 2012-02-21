@@ -734,52 +734,42 @@ __kernel void ckDetect(__global float* dataIn1, __global float* dataIn2, __globa
 
 	int numberExt = 0;
 
-	if( pozX < ImageWidth-SIFT_IMG_BORDER && pozY < ImageHeight-SIFT_IMG_BORDER && pozX > SIFT_IMG_BORDER && pozY > SIFT_IMG_BORDER )
+	float pixel = GetPixel(dataIn2, pozX, pozY, ImageWidth, ImageHeight);
+
+	if( pozX < ImageWidth-SIFT_IMG_BORDER && pozY < ImageHeight-SIFT_IMG_BORDER && pozX > SIFT_IMG_BORDER && pozY > SIFT_IMG_BORDER
+		&& ABS(pixel) > prelim_contr_thr &&  is_extremum( dataIn1, dataIn2, dataIn2, pozX, pozY, ImageWidth, ImageHeight) == 1  )
 	{
-		
-		float pixel = GetPixel(dataIn2, pozX, pozY, ImageWidth, ImageHeight);
-		
-		if( ABS(pixel) > prelim_contr_thr )
+		float feat = interp_extremum( dataIn1, dataIn2, dataIn3, pozX, pozY, ImageWidth, ImageHeight, SIFT_INTVLS, SIFT_CONTR_THR, intvl, &xi, &xr, &xc);
+		if( feat && is_too_edge_like( dataIn2, pozX, pozY, ImageWidth, ImageHeight, SIFT_CURV_THR ) != 1 )
 		{
-			if( is_extremum( dataIn1, dataIn2, dataIn2, pozX, pozY, ImageWidth, ImageHeight) == 1 )
-			{
+			float intvl2 = intvl + xi; 
 
-				float feat = interp_extremum( dataIn1, dataIn2, dataIn3, pozX, pozY, ImageWidth, ImageHeight, SIFT_INTVLS, SIFT_CONTR_THR, intvl, &xi, &xr, &xc);
-				if( feat )
-				{
-					if( is_too_edge_like( dataIn2, pozX, pozY, ImageWidth, ImageHeight, SIFT_CURV_THR ) != 1 )
-					{
-						float intvl2 = intvl + xi; 
+			//float	scx = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
+			//float	scy = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
+			//float	x = pozX;
+			//float	y = pozY;
+			//float	subintvl = xi;
+			//float	intvlRes = intvl;
+			//float	octvRes = octv;
+			//float	scl = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;  
+			//float	scl_octv = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
+			//float	ori = 0;
+			//float	mag = 0;
 
-						float	scx = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
-						float	scy = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
-						float	x = pozX;
-						float	y = pozY;
-						float	subintvl = xi;
-						float	intvlRes = intvl;
-						float	octvRes = octv;
-						float	scl = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;  
-						float	scl_octv = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
-						float	ori = 0;
-						float	mag = 0;
+			int offset = 139;
+			numberExt = atomic_add(number, (int)1);
 
-						int offset = 139;
-						numberExt = atomic_add(number, (int)1);
-
-						keys[numberExt*offset] = scx;
-						keys[numberExt*offset + 1] = scy;
-						keys[numberExt*offset + 2] = x;
-						keys[numberExt*offset + 3] = y;
-						keys[numberExt*offset + 4] = subintvl;
-						keys[numberExt*offset + 5] = intvlRes;
-						keys[numberExt*offset + 6] = octvRes;
-						keys[numberExt*offset + 7] = scl;
-						keys[numberExt*offset + 8] = scl_octv;
-						keys[numberExt*offset + 9] = 0;//orients[iteratorOrient];
-						keys[numberExt*offset + 10] = 0;//omax;
-					}
-				}
-			} 
+			keys[numberExt*offset] = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
+			keys[numberExt*offset + 1] = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
+			keys[numberExt*offset + 2] = pozX;
+			keys[numberExt*offset + 3] = pozY;
+			keys[numberExt*offset + 4] = xi;
+			keys[numberExt*offset + 5] = intvl;
+			keys[numberExt*offset + 6] = octv;
+			keys[numberExt*offset + 7] = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;
+			keys[numberExt*offset + 8] = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
+			keys[numberExt*offset + 9] = 0;//orients[iteratorOrient];
+			keys[numberExt*offset + 10] = 0;//omax;
 		}
 	} 
 }
@@ -885,91 +875,4 @@ __kernel void ckDesc( __read_only image2d_t gauss_pyr, __global float* ucDest,
 			keys[numberExt*offset + 11 + i] = desc[i];
 
 	}
-
-
-	//if( numberExt < *number)
-	//{
-	//	float	scx = keys[numberExt*offset];
-	//	float	scy = keys[numberExt*offset + 1];
-	//	float	x = keys[numberExt*offset + 2];
-	//	float	y = keys[numberExt*offset + 3];
-	//	float	subintvl = keys[numberExt*offset + 4];
-	//	float	intvlRes = keys[numberExt*offset + 5];
-	//	float	octvRes = keys[numberExt*offset + 6];
-	//	float	scl = keys[numberExt*offset + 7];  
-	//	float	scl_octv = keys[numberExt*offset + 8];
-	//	float	ori = keys[numberExt*offset + 9];
-	//	
-
-	//	float hist[SIFT_ORI_HIST_BINS];
-	//					
-	//	for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
-	//		hist[j] = 0;
-
-	//	ori_hist( gauss_pyr, x, y, ImageWidth, ImageHeight, hist, SIFT_ORI_HIST_BINS,
-	//					ROUND( SIFT_ORI_RADIUS * scl_octv ),	SIFT_ORI_SIG_FCTR * scl_octv );
-
-	//					
-	//	for(int j = 0; j < SIFT_ORI_SMOOTH_PASSES; j++ )
-	//		smooth_ori_hist( hist, SIFT_ORI_HIST_BINS );
-
-	//	int maxBin = 0;
-
-	//	float omax = dominant_ori( hist, SIFT_ORI_HIST_BINS, &maxBin );
-
-	//	float orients[SIFT_ORI_HIST_BINS];
-	//	for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
-	//		orients[j] = 0;
-
-	//	int numberOrient = 0;
-
-	//	add_good_ori_features(hist, SIFT_ORI_HIST_BINS,	omax * SIFT_ORI_PEAK_RATIO, orients, &numberOrient);
-
-
-	//	ori = orients[0];
-	//	keys[numberExt*offset + 9] = ori;
-
-
-	//	float hist2[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS];
-
-	//	
-	//	for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
-	//		for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
-	//			for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
-	//				hist2[ii][iii][iiii] = 0.0;
-
-
-	//	descr_hist( gauss_pyr, keys[numberExt*offset + 2], keys[numberExt*offset + 3], ImageWidth, ImageHeight, keys[numberExt*offset + 9], keys[numberExt*offset + 8], hist2, SIFT_DESCR_WIDTH, SIFT_DESCR_HIST_BINS );
-	//	
-
-	//	int k = 0;
-	//	float desc[128];
-	//						
-	//	for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
-	//		for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
-	//			for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
-	//				desc[k++] = hist2[ii][iii][iiii];
-	//						
-	//	normalize_descr( desc );
-
-
-	//	for(int i = 0; i < k; i++ )
-	//	{
-	//		if( desc[i] > SIFT_DESCR_MAG_THR )
-	//			desc[i] = SIFT_DESCR_MAG_THR;
-	//	}
-
-	//	normalize_descr( desc );
-
-	//	// convert floating-point descriptor to integer valued descriptor */
-	//	for(int i = 0; i < k; i++ )
-	//	{
-	//		desc[i] = min( 255, (int)(SIFT_INT_DESCR_FCTR * desc[i]) );
-	//	}
-
-
-	//	for(int i = 0; i < k; i++ )
-	//		keys[numberExt*offset + 11 + i] = desc[i];
-
-	//}
  }
