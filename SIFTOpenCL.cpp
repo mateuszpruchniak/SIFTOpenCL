@@ -29,10 +29,31 @@
 
  }
 
+   /*
+ Compares features for a decreasing-scale ordering.  Intended for use with
+ CvSeqSort
+
+ @param feat1 first feature
+ @param feat2 second feature
+ @param param unused
+
+ @return Returns 1 if feat1's scale is greater than feat2's, -1 if vice versa,
+ and 0 if their scales are equal
+ */
+int FeatureCmp( void* feat1, void* feat2, void* param )
+ {
+	 feature* f1 = (feature*) feat1;
+	 feature* f2 = (feature*) feat2;
+
+	 if( f1->scl < f2->scl )
+		 return 1;
+	 if( f1->scl > f2->scl )
+		 return -1;
+	 return 0;
+ }
 
 
-
- bool SIFTOpenCL::DoSift( IplImage* img )
+ int SIFTOpenCL::DoSift( IplImage* img )
  {
 	IplImage* init_img;
 	IplImage*** dog_pyr;
@@ -102,8 +123,9 @@
 	ReleasePyr( &gauss_pyr, octvs, intvls + 3 );
 	ReleasePyr( &dog_pyr, octvs, intvls + 2 );
 	
-	return true;
+	return n;
  }
+
 
 
  /*
@@ -127,29 +149,6 @@
  }
 
 
-
- /*
- Compares features for a decreasing-scale ordering.  Intended for use with
- CvSeqSort
-
- @param feat1 first feature
- @param feat2 second feature
- @param param unused
-
- @return Returns 1 if feat1's scale is greater than feat2's, -1 if vice versa,
- and 0 if their scales are equal
- */
- int SIFTOpenCL::FeatureCmp( void* feat1, void* feat2, void* param )
- {
-	 feature* f1 = (feature*) feat1;
-	 feature* f2 = (feature*) feat2;
-
-	 if( f1->scl < f2->scl )
-		 return 1;
-	 if( f1->scl > f2->scl )
-		 return -1;
-	 return 0;
- }
 
  /*
 Detects features at extrema in DoG scale space.  Bad features are discarded

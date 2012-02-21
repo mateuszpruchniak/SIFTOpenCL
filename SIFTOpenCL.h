@@ -113,7 +113,7 @@ private:
 	Subtract* subtract;
 	DetectExtrema* detectExt;
 	
-	feature* feat;
+	
 	IplImage*** gauss_pyr;
 
 	IplImage* CreateInitialImg( IplImage* img, int img_dbl, float sigma );
@@ -130,14 +130,16 @@ private:
 	feature* InterpExtremum( IplImage*** dog_pyr, int octv, int intvl, int r, int c, int intvls, float contr_thr );
 	int IsExtremum( IplImage*** dog_pyr, int octv, int intvl, int r, int c );
 	int IsTooEdgeLike( IplImage* dog_img, int r, int c, int curv_thr );
-	int FeatureCmp( void* feat1, void* feat2, void* param );
+	//int FeatureCmp( void* feat1, void* feat2, void* param );
 	void ReleasePyr( IplImage**** pyr, int octvs, int n );
 
 public:
 
+	feature* feat;
+
 	SIFTOpenCL();
 
-	bool DoSift(IplImage* img);
+	int DoSift(IplImage* img);
 	
 
 

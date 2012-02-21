@@ -82,7 +82,8 @@ int main()
 	double duration = 0;
 	start = clock();
 		
-		siftOpenCL->DoSift(img);
+		n = siftOpenCL->DoSift(img);
+		features = siftOpenCL->feat;
 
 	finish = clock();
 	duration = (double)(finish - start) / CLOCKS_PER_SEC;
