@@ -1596,7 +1596,7 @@ De-allocates memory held by a scale space pyramid
 
 	meanFilter = new MeanFilter();
 	subtract = new Subtract();
-	detectExt = new DetectExtrema();
+	//etectExt = new DetectExtrema(
 	/*magOrient = new MagnitudeOrientation();
 	assignOrient = new AssignOrientations();
 	extractKeys = new ExtractKeypointDescriptors();*/

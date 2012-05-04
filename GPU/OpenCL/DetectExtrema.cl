@@ -82,13 +82,6 @@ float GetPixel(__global float* dataIn, int x, int y, int ImageWidth, int ImageHe
 	return dataIn[GMEMOffset];
 }
 
-float GetPixelTEX( __read_only image2d_t dataIn, int x, int y, int ImageWidth, int ImageHeight )
-{
-	int2 pos = {x , y};
-	sampler_t mySampler = CLK_FILTER_NEAREST | CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE;
-
-	return read_imagef(dataIn, mySampler, pos).x;
-}
 
 
 /*
@@ -457,22 +450,7 @@ Calculates the gradient magnitude and orientation at a given pixel.
 		return 0;
 }
 
-int calc_grad_mag_oriTEX(__read_only image2d_t gauss_pyr, int pozX, int pozY, int ImageWidth, int ImageHeight, float* mag, float* ori )
-{
-	float dx, dy;
 
-	if( pozX > 0  &&  pozX < ImageWidth - 1  &&  pozY > 0  &&  pozY < ImageHeight - 1 )
-	{
-		dx = GetPixelTEX(gauss_pyr, pozX+1, pozY, ImageWidth, ImageHeight) - GetPixelTEX(gauss_pyr, pozX-1, pozY, ImageWidth, ImageHeight);
-		dy =  GetPixelTEX(gauss_pyr, pozX, pozY-1, ImageWidth, ImageHeight) - GetPixelTEX(gauss_pyr, pozX, pozY+1, ImageWidth, ImageHeight);
-		*mag = sqrt( dx*dx + dy*dy );
-		*ori = atan2( dy, dx );
-		return 1;
-	}
-
-	else
-		return 0;
-}
 
  /*
 Computes a gradient orientation histogram at a specified pixel.
@@ -481,7 +459,7 @@ Computes a gradient orientation histogram at a specified pixel.
 @return Returns an n-element array containing an orientation histogram
 	representing orientations between 0 and 2 PI.
 */
-void ori_hist( __read_only image2d_t gauss_pyr, int pozX, int pozY, int ImageWidth, int ImageHeight, float* hist, int n, int rad, float sigma)
+void ori_hist( __global float* gauss_pyr, int pozX, int pozY, int ImageWidth, int ImageHeight, float* hist, int n, int rad, float sigma)
 {
 	float mag, ori, w, exp_denom, PI2 = CV_PI * 2.0;
 	int bin, i, j;
@@ -491,7 +469,7 @@ void ori_hist( __read_only image2d_t gauss_pyr, int pozX, int pozY, int ImageWid
 	
 	for( i = -rad; i <= rad; i++ )
 		for( j = -rad; j <= rad; j++ )
-			if( calc_grad_mag_oriTEX( gauss_pyr, pozX + i, pozY + j, ImageWidth, ImageHeight, &mag, &ori ) )
+			if( calc_grad_mag_ori( gauss_pyr, pozX + i, pozY + j, ImageWidth, ImageHeight, &mag, &ori ) )
 			{	
 				w = exp( -(float)( i*i + j*j ) / exp_denom );
 				bin = ROUND( n * ( ori + CV_PI ) / PI2 );
@@ -647,7 +625,7 @@ Computes the 2D array of orientation histograms that form the feature
 descriptor.  Based on Section 6.1 of Lowe's paper.
 
 */
-void descr_hist( __read_only image2d_t gauss_pyr,  int pozX, int pozY, int ImageWidth, int ImageHeight, float ori, float scl, float hist[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS], int d, int n )
+void descr_hist( __global float* gauss_pyr,  int pozX, int pozY, int ImageWidth, int ImageHeight, float ori, float scl, float hist[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS], int d, int n )
 {
 	
 	float cos_t, sin_t, hist_width, exp_denom, r_rot, c_rot, grad_mag,
@@ -678,7 +656,7 @@ void descr_hist( __read_only image2d_t gauss_pyr,  int pozX, int pozY, int Image
 			cbin = c_rot + d / 2 - 0.5;
 
 			if( rbin > -1.0  &&  rbin < d  &&  cbin > -1.0  &&  cbin < d )
-				if( calc_grad_mag_oriTEX( gauss_pyr, pozX + j, pozY + i, ImageWidth, ImageHeight, &grad_mag, &grad_ori ) )
+				if( calc_grad_mag_ori( gauss_pyr, pozX + j, pozY + i, ImageWidth, ImageHeight, &grad_mag, &grad_ori ) )
 				{
 					grad_ori -= ori;
 					while( grad_ori < 0.0 )
@@ -721,7 +699,7 @@ Normalizes a feature's descriptor vector to unitl length
 
 
 __kernel void ckDetect(__global float* dataIn1, __global float* dataIn2, __global float* dataIn3, __global float* ucDest,
-						__global int* numberExtrema, __global float* keys,
+						__global float* keys,
 						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number, __global int* numberRej)
 {
 	int pozX = get_global_id(0);
@@ -776,14 +754,13 @@ __kernel void ckDetect(__global float* dataIn1, __global float* dataIn2, __globa
 
 
 
-__kernel void ckDesc( __read_only image2d_t gauss_pyr, __global float* ucDest,
+__kernel void ckDesc( __global float* gauss_pyr, __global float* ucDest,
 						__global int* numberExtrema, __global float* keys,
-						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number, __global int* numberAct)
+						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number)
  {
 
-	sampler_t mySampler = CLK_FILTER_NEAREST | CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE;
 
-	int numberExt = atomic_add(numberAct, (int)1);
+	int numberExt = atomic_add(numberExtrema, (int)1);
 	int offset = 139;
 	
 	int pozX = get_global_id(0);
@@ -869,7 +846,6 @@ __kernel void ckDesc( __read_only image2d_t gauss_pyr, __global float* ucDest,
 		{
 			desc[i] = min( 255, (int)(SIFT_INT_DESCR_FCTR * desc[i]) );
 		}
-
 
 		for(int i = 0; i < k; i++ )
 			keys[numberExt*offset + 11 + i] = desc[i];

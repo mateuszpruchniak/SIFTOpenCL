@@ -19,7 +19,8 @@
 
 	 meanFilter = new MeanFilter();
 	 subtract = new Subtract();
-	 detectExt = new DetectExtrema();
+	 Keys keys[SIFT_MAX_NUMBER_KEYS];
+	 detectExt = new DetectExtrema(SIFT_MAX_NUMBER_KEYS, keys);
  }
 
    /*

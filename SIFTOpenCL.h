@@ -90,9 +90,9 @@ struct detection_data
 
 #define ROUND(x) ( ( x - (int)x ) <= 0.5 ? (int)x :  (int)x + 1 )
 
-#define	SIFTCPU		0
+#define	SIFTCPU			0
 
-
+#define SIFT_MAX_NUMBER_KEYS		1000
 
 
 class SIFTOpenCL

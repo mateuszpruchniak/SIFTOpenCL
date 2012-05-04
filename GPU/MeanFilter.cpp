@@ -8,7 +8,7 @@ MeanFilter::~MeanFilter(void)
 {
 }
 
-MeanFilter::MeanFilter(): GPUBase("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\BlurGaussFilter.cl","ckConv")
+MeanFilter::MeanFilter(): GPUBase("C:\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\BlurGaussFilter.cl","ckConv")
 {
 
 }

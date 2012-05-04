@@ -19,6 +19,7 @@ GPUBase::GPUBase(char* source, char* KernelName)
 
 	cl_uint uiNumAllDevs = 0;
 
+
 	// Get the number of GPU devices available to the platform
 	GPUError = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU, 0, NULL, &uiNumAllDevs);
 	CheckError(GPUError);
@@ -40,7 +41,7 @@ GPUBase::GPUBase(char* source, char* KernelName)
 	oclPrintDevName(LOGBOTH, cdDevices[0]);
 
 	// Load OpenCL kernel
-	SourceOpenCLShared = oclLoadProgSource("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\GPUCode.cl", "// My comment\n", &szKernelLength);
+	SourceOpenCLShared = oclLoadProgSource("C:\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\GPUCode.cl", "// My comment\n", &szKernelLength);
 
 	SourceOpenCL = oclLoadProgSource(source, "// My comment\n", &szKernelLengthFilter);
 	szKernelLengthSum = szKernelLength + szKernelLengthFilter;
@@ -91,12 +92,6 @@ bool GPUBase::CreateBuffersIn(int maxBufferSize, int numbOfBuffers)
 		buffersListIn[i] = clCreateBuffer(GPUContext, CL_MEM_READ_WRITE, maxBufferSize, NULL, &GPUError);
 		CheckError(GPUError);
 	}
-
-	
-	
-
-
-
 
 	return true;
 }
@@ -167,8 +162,6 @@ bool GPUBase::SendImageToBuffers(IplImage* img, ... )
 			CheckError(GPUError);
 		}
 		va_end(arg_ptr);
-
-
 
 	//finish = clock();
 	//duration = (double)(finish - start) / CLOCKS_PER_SEC;

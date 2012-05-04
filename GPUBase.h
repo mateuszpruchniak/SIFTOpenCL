@@ -89,14 +89,11 @@ class GPUBase
 		 */
         cl_program GPUProgram;    
 
-		cl_program GPUProgram2;    
 
 		/*!
 		 * Kernels are essentially functions that we can call from the host and that will run on the device
 		 */
         cl_kernel GPUKernel;
-
-		cl_kernel GPUKernel2;
 
 		/*!
 		 * Work-group size - dim X.
