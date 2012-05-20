@@ -11,9 +11,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <time.h>
-#include "GPUTransferManager.h"
 #include "stdafx.h"
-#include "SIFTOpenCL.h"
+#include "SiftGPU.h"
 #include "utils.h"
 #include "kdtree.h"
 
@@ -31,7 +30,7 @@ int main()
 {
 
 	char* img1_file = "c:\\opel.jpg";
-	char* img2_file = "c:\\scene2.jpg";
+	char* img2_file = "c:\\opel.jpg";
 	IplImage* img1, * img2, *stacked;
 	char* img_file_name = "c:\\scene2.jpg";
 	char* out_file_name  = "c:\\h1.sift";;
@@ -58,7 +57,7 @@ int main()
 
 
 
-	SIFTOpenCL* siftOpenCL = new SIFTOpenCL();
+	SiftGPU* siftOpenCL = new SiftGPU();
 	//SIFTOpenCL* siftOpenCL2 = new SIFTOpenCL();
 
 	fprintf( stderr, "Finding SIFT features...\n" );
