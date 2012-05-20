@@ -8,6 +8,9 @@
 class MeanFilter :
 	public GPUBase
 {
+
+	cl_mem cmBufPyramid;
+
 public:
 
 	/*!
@@ -21,5 +24,9 @@ public:
 	MeanFilter();
 	
 	bool Process(float sigma);
+
+	bool Process2(IplImage*** gauss_pyr, int octvs, int intvls, float* sigma, float size );
+
+	bool SendImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct);
 };
 

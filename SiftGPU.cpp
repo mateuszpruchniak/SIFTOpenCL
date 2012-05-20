@@ -751,25 +751,28 @@ Builds Gaussian scale space pyramid from an image
 		sig[i] = sqrt( sig_total * sig_total - sig_prev * sig_prev );
 	}
 
+	int* sizeOfImages = new int[octvs];
+	float SumOfPyramid = 0;
+
 	for( o = 0; o < octvs; o++ )
+	{
 		for( i = 0; i < intvls + 3; i++ )
 		{
 			if( o == 0  &&  i == 0 )
+			{
 				gauss_pyr[o][i] = cvCloneImage(base);
+			}
 
 			/* base of new octvave is halved image from end of previous octave */
 			else if( i == 0 )
 			{
-				
 				gauss_pyr[o][i] = Downsample( gauss_pyr[o-1][intvls] );
-
 			}
 
 			/* blur the current octave's last image to create the next one */
 			else
 			{
 				gauss_pyr[o][i] = cvCreateImage( cvGetSize(gauss_pyr[o][i-1]), 32, 1 );
-
 				/************************ GPU **************************/
 				if(SIFTCPU)
 					cvSmooth( gauss_pyr[o][i-1], gauss_pyr[o][i],CV_GAUSSIAN, 0, 0, sig[i], sig[i] );
@@ -782,9 +785,28 @@ Builds Gaussian scale space pyramid from an image
 					meanFilter->ReceiveImageData(1,gauss_pyr[o][i]);
 				}
 				/************************ GPU **************************/
-				
 			}
+
+
+			SumOfPyramid += gauss_pyr[o][i]->imageSize;
 		}
+
+		sizeOfImages[o] = gauss_pyr[o][0]->imageSize;
+
+	}
+
+	meanFilter->Process2(gauss_pyr,octvs,intvls + 3, sig, SumOfPyramid);
+
+	int offset = 0;
+
+	for( o = 0; o < octvs; o++ )
+	{
+		for( i = 0; i < intvls + 3; i++ )
+		{
+			meanFilter->SendImageToBufPyramid(gauss_pyr[o][i], offset, sizeOfImages);
+			offset += sizeOfImages[o];
+		}
+	}
 
 	free( sig );
 	return gauss_pyr;

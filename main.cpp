@@ -24,12 +24,14 @@ using namespace std;
 /* threshold on squared ratio of distances between NN and 2nd NN */
 #define NN_SQ_DIST_RATIO_THR 0.49
 
+double SendTime = 0;
+double RecvTime = 0;
 
 // The main function!
 int main()
 {
 
-	char* img1_file = "c:\\opel.jpg";
+	char* img1_file = "c:\\opel2.jpg";
 	char* img2_file = "c:\\opel.jpg";
 	IplImage* img1, * img2, *stacked;
 	char* img_file_name = "c:\\scene2.jpg";
@@ -86,6 +88,9 @@ int main()
 	cout << endl;
 	cout << "SIFT " << SIFTCPU << ": ";;
 	cout << duration << endl;
+	cout << "Send time: " << SendTime << endl;
+	cout << "Receive time: " << RecvTime << endl;
+	cout << "Transfer time (%): " << (SendTime+RecvTime)*100 / duration  << endl;
 	cout << endl;
 	fprintf( stderr, "Found %d features1.\n", n1 );
 	fprintf( stderr, "Found %d features2.\n", n2 );

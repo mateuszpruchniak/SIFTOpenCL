@@ -163,7 +163,10 @@ bool GPUBase::SendImageToBuffers(int number, ... )
 	va_list arg_ptr;
 	va_start(arg_ptr, number);
 	
-
+	clock_t start, finish;
+	double duration = 0;
+	start = clock();
+	
 	for(int i = 0 ; i < number ; i++)
 	{
 		IplImage* tmpImg = va_arg(arg_ptr, IplImage*);
@@ -172,6 +175,14 @@ bool GPUBase::SendImageToBuffers(int number, ... )
 		GPUError = clEnqueueWriteBuffer(GPUCommandQueue, GPU::getInstance().buffersListIn[i], CL_TRUE, 0, tmpImg->width*tmpImg->height*sizeof(float) , (void*)tmpImg->imageData, 0, NULL, NULL);
 		CheckError(GPUError);
 	}
+
+	finish = clock();
+	duration = (double)(finish - start) / CLOCKS_PER_SEC;
+	SendTime += duration;
+
+	//cout << "------- Send ---------------" << endl;
+	//cout << SendTime << endl;
+
 	va_end(arg_ptr);
 }
 
@@ -184,12 +195,24 @@ bool GPUBase::ReceiveImageData(int number, ... )
 	va_list arg_ptr;
 	va_start(arg_ptr, number);
 
+	clock_t start, finish;
+	double duration = 0;
+	start = clock();
+
 	for(int i = 0 ; i < number ; i++)
 	{
 		IplImage* tmpImg = va_arg(arg_ptr, IplImage*);
 		GPUError = clEnqueueReadBuffer(GPUCommandQueue, GPU::getInstance().buffersListOut[i], CL_TRUE, 0, tmpImg->width*tmpImg->height*sizeof(float) , (void*)tmpImg->imageData, 0, NULL, NULL);
 		CheckError(GPUError);
 	}
+
+	finish = clock();
+	duration = (double)(finish - start) / CLOCKS_PER_SEC;
+	RecvTime += duration;
+
+	//cout << "------- Receive ---------------" << endl;
+	//cout << RecvTime << endl;
+
 	va_end(arg_ptr);
 }
 
