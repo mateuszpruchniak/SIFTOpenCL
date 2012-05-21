@@ -72,11 +72,11 @@ bool DetectExtrema::Process(int* numExtr, int* numExtrRej, float prelim_contr_th
 	GPUError |= clSetKernelArg(GPUKernel, 2, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListIn[2]);
 	GPUError |= clSetKernelArg(GPUKernel, 3, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListOut[0]);
 	GPUError |= clSetKernelArg(GPUKernel, 4, sizeof(cl_mem), (void*)&cmDevBufKeys);
-	GPUError |= clSetKernelArg(GPUKernel, 5, sizeof(cl_uint), (void*)&imageWidth);
-	GPUError |= clSetKernelArg(GPUKernel, 6, sizeof(cl_uint), (void*)&imageHeight);
+	GPUError |= clSetKernelArg(GPUKernel, 5, sizeof(cl_int), (void*)&imageWidth);
+	GPUError |= clSetKernelArg(GPUKernel, 6, sizeof(cl_int), (void*)&imageHeight);
 	GPUError |= clSetKernelArg(GPUKernel, 7, sizeof(cl_float), (void*)&prelim_contr_thr);
-	GPUError |= clSetKernelArg(GPUKernel, 8, sizeof(cl_uint), (void*)&intvl);
-	GPUError |= clSetKernelArg(GPUKernel, 9, sizeof(cl_uint), (void*)&octv);
+	GPUError |= clSetKernelArg(GPUKernel, 8, sizeof(cl_int), (void*)&intvl);
+	GPUError |= clSetKernelArg(GPUKernel, 9, sizeof(cl_int), (void*)&octv);
 	GPUError |= clSetKernelArg(GPUKernel, 10, sizeof(cl_mem), (void*)&cmDevBufNumber);
 	GPUError |= clSetKernelArg(GPUKernel, 11, sizeof(cl_mem), (void*)&cmDevBufNumberReject);
 	if(GPUError) return false;
@@ -99,11 +99,11 @@ bool DetectExtrema::Process(int* numExtr, int* numExtrRej, float prelim_contr_th
 	GPUError |= clSetKernelArg(GPUKernelDesc, 1, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListOut[0]);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 2, sizeof(cl_mem), (void*)&cmDevBufCount);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 3, sizeof(cl_mem), (void*)&cmDevBufKeys);
-	GPUError |= clSetKernelArg(GPUKernelDesc, 4, sizeof(cl_uint), (void*)&imageWidth);
-	GPUError |= clSetKernelArg(GPUKernelDesc, 5, sizeof(cl_uint), (void*)&imageHeight);
+	GPUError |= clSetKernelArg(GPUKernelDesc, 4, sizeof(cl_int), (void*)&imageWidth);
+	GPUError |= clSetKernelArg(GPUKernelDesc, 5, sizeof(cl_int), (void*)&imageHeight);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 6, sizeof(cl_float), (void*)&prelim_contr_thr);
-	GPUError |= clSetKernelArg(GPUKernelDesc, 7, sizeof(cl_uint), (void*)&intvl);
-	GPUError |= clSetKernelArg(GPUKernelDesc, 8, sizeof(cl_uint), (void*)&octv);
+	GPUError |= clSetKernelArg(GPUKernelDesc, 7, sizeof(cl_int), (void*)&intvl);
+	GPUError |= clSetKernelArg(GPUKernelDesc, 8, sizeof(cl_int), (void*)&octv);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 9, sizeof(cl_mem), (void*)&cmDevBufNumber);
 	if(GPUError) return false;
 

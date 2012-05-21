@@ -10,6 +10,13 @@ class MeanFilter :
 {
 
 	cl_mem cmBufPyramid;
+	cl_mem cmBufPyramidOut;
+
+	cl_mem cmBufSigma;
+
+	cl_mem cmBufimageWidth;
+
+	cl_mem cmBufimageHeight;
 
 public:
 
@@ -23,10 +30,12 @@ public:
 	*/
 	MeanFilter();
 	
-	bool Process(float sigma);
+	bool Process(float* sigma, int* imageWidth, int* imageHeight,  int octvs, int intvlsSum, int maxWidth, int maxHeight, int nChannels);
 
-	bool Process2(IplImage*** gauss_pyr, int octvs, int intvls, float* sigma, float size );
+	bool CreateBuffer(IplImage*** gauss_pyr, int octvs, int intvls, float* sigma, float size );
 
 	bool SendImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct);
+
+	bool ReceiveImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct);
 };
 
