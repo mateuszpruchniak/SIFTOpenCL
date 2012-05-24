@@ -1,5 +1,4 @@
 
-
 #define ROUND(x) ( ( x - (int)x ) <= 0.5 ? (int)x :  (int)x + 1 )
 
 
@@ -11,6 +10,7 @@ __kernel void ckConv(__global float* ucSource, __global float* ucDest, int octvs
 		int pozY = 0;
 		int maskSize = 0;
 		int Offset = 0;
+		int OffsetPrev = 0;
 		int offset = 0;
 		float pi = 3.1415926535897932384626433832795;
 		int r = 0;
@@ -19,7 +19,9 @@ __kernel void ckConv(__global float* ucSource, __global float* ucDest, int octvs
 		float G = 0.0;
 		int punktOffset = 0;
 
-		// rozmywanie na podstawie poprzedniego!!!!!!!!!!!!
+		// przerobic na wywolania pojedynczych obrazow z podanym offsetem
+
+
 
 		for(int o = 0; o < octvs; o++ )
 		{
@@ -41,18 +43,23 @@ __kernel void ckConv(__global float* ucSource, __global float* ucDest, int octvs
 						int x = pozX + ii >= 0 && pozX + ii <= ImageWidth[o]  ? pozX + ii : 0;
 						int y = pozY + j >= 0 && pozY + j <= ImageHeight[o] ? pozY + j : 0;
 
-						offset = Offset + mul24(y, ImageWidth[o]) + x;
+						offset = OffsetPrev + mul24(y, ImageWidth[o]) + x;
 						sum += G * ucSource[offset];
 					}
 				}
 
+				OffsetPrev = Offset;
 				Offset += ImageWidth[o] * ImageHeight[o];
 
+
+				
 
 				if((pozY <= ImageHeight[o]) && (pozX <= ImageWidth[o]))
 				{
 					ucDest[punktOffset] = sum / (2.0 * pi * sigma[i] * sigma[i]);
 				}
+
+				barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
 
 			}
 		}
