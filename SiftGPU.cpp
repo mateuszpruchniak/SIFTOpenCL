@@ -817,7 +817,7 @@ Builds Gaussian scale space pyramid from an image
 
 
 
-	meanFilter->CreateBuffer(gauss_pyr,octvs,intvls + 3, sig, SumOfPyramid);
+	meanFilter->CreateBuffer(SumOfPyramid);
 
 	int offset = 0;
 
@@ -832,7 +832,7 @@ Builds Gaussian scale space pyramid from an image
 			{
 				gauss_pyr[o][i] = Downsample( gauss_pyr[o-1][intvls] );
 			} else {
-				gauss_pyr[o][i] = cvCreateImage( cvGetSize(gauss_pyr[o][i-1]), 32, 1 );
+				gauss_pyr[o][i] = gauss_pyr[o][i-1];
 			}
 
 			meanFilter->SendImageToBufPyramid(gauss_pyr[o][i], offset, sizeOfImages);
@@ -842,27 +842,36 @@ Builds Gaussian scale space pyramid from an image
 		}
 	}
 
-	gauss_pyr[o][i]->nChannels;
 
-	meanFilter->Process( sig,imageWidth,imageHeight,octvs,intvlsSum,gauss_pyr[0][0]->width,gauss_pyr[0][0]->height,gauss_pyr[0][0]->depth / 8 );
+	
 
 	offset = 0;
+	int OffsetAct = 0;
+	int OffsetPrev = 0;
+
 	for( o = 0; o < 1; o++ )
 	{
-		for( i = 0; i < intvlsSum; i++ )
+		for( i = 0; i < 2; i++ )
 		{
-			meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], offset, sizeOfImages);
-			offset += sizeOfImages[o];
+			if(i > 0)
+				meanFilter->Process( sig[i], gauss_pyr[o][i]->width, gauss_pyr[o][i]->height, OffsetAct, OffsetPrev);
+
+			meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
+
+			OffsetPrev = OffsetAct;
+			OffsetAct += sizeOfImages[o];
 
 			cvNamedWindow( "Matches", 1 );
 			cvShowImage( "Matches", gauss_pyr[o][i] );
 			cvWaitKey( 0 );
-
 		}
 	}
 
+	
 
-	free( sig );
+	cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+
+	free( sig );	
 	return gauss_pyr;
 }
 
