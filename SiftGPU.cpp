@@ -70,10 +70,10 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 	
 	octvs = log( (float)MIN( init_img->width, init_img->height ) ) / log((float)2) - 2;
 	
-	gauss_pyr = BuildGaussPyr( init_img, octvs, intvls, sigma );
+	cl_mem cmBufPyramid = BuildGaussPyr( init_img, octvs, intvls, sigma );
 	
 	
-	dog_pyr = BuildDogPyr( gauss_pyr, octvs, intvls );
+	dog_pyr = BuildDogPyr( cmBufPyramid, octvs, intvls );
 	
 	storage = cvCreateMemStorage( 0 );
 	
@@ -675,7 +675,7 @@ intervals of a Gaussian pyramid
 @return Returns a difference of Gaussians scale space pyramid as an
 	octvs x (intvls + 2) array
 */
- IplImage*** SiftGPU::BuildDogPyr( IplImage*** gauss_pyr, int octvs, int intvls )
+ IplImage*** SiftGPU::BuildDogPyr( cl_mem cmBufPyramid, int octvs, int intvls )
 {
 	IplImage*** dog_pyr;
 	int i, o;
@@ -683,6 +683,10 @@ intervals of a Gaussian pyramid
 	dog_pyr = (IplImage***)calloc( octvs, sizeof( IplImage** ) );
 	for( i = 0; i < octvs; i++ )
 		dog_pyr[i] = (IplImage**)calloc( intvls + 2, sizeof(IplImage*) );
+
+
+
+
 
 	for( o = 0; o < octvs; o++ )
 		for( i = 0; i < intvls + 2; i++ )
@@ -726,7 +730,7 @@ Builds Gaussian scale space pyramid from an image
 
 @return Returns a Gaussian scale space pyramid as an octvs x (intvls + 3) array
 */
- IplImage*** SiftGPU::BuildGaussPyr( IplImage* base, int octvs,
+ cl_mem SiftGPU::BuildGaussPyr( IplImage* base, int octvs,
 									int intvls, float sigma )
 {
 	float* sig = (float*)calloc( intvls + 3, sizeof(float));
@@ -758,46 +762,6 @@ Builds Gaussian scale space pyramid from an image
 	}
 
 	
-
-	//for( o = 0; o < octvs; o++ )
-	//{
-	//	for( i = 0; i < intvlsSum; i++ )
-	//	{
-	//		if( o == 0  &&  i == 0 )
-	//		{
-	//			gauss_pyr[o][i] = cvCloneImage(base);
-	//		}
-
-	//		/* base of new octvave is halved image from end of previous octave */
-	//		else if( i == 0 )
-	//		{
-	//			gauss_pyr[o][i] = Downsample( gauss_pyr[o-1][intvls] );
-	//		}
-
-	//		/* blur the current octave's last image to create the next one */
-	//		else
-	//		{
-	//			gauss_pyr[o][i] = cvCreateImage( cvGetSize(gauss_pyr[o][i-1]), 32, 1 );
-	//			/************************ GPU **************************/
-	//			if(SIFTCPU)
-	//				cvSmooth( gauss_pyr[o][i-1], gauss_pyr[o][i],CV_GAUSSIAN, 0, 0, sig[i], sig[i] );
-	//			else
-	//			{
-	//				meanFilter->SendImageToBuffers(1,gauss_pyr[o][i-1]);
-	//				meanFilter->Process(sig[i]);
-	//				meanFilter->ReceiveImageData(1,gauss_pyr[o][i]);
-	//			}
-	//			/************************ GPU **************************/
-	//		}
-
-
-	//		SumOfPyramid += gauss_pyr[o][i]->imageSize;
-	//	}
-
-	//	sizeOfImages[o] = gauss_pyr[o][0]->imageSize;
-
-	//}
-
 	gauss_pyr[0][0] = cvCloneImage(base);
 	
 
@@ -849,21 +813,17 @@ Builds Gaussian scale space pyramid from an image
 	int OffsetAct = 0;
 	int OffsetPrev = 0;
 
-	for( o = 0; o < 1; o++ )
+	for( o = 0; o < octvs; o++ )
 	{
-		for( i = 0; i < 2; i++ )
+		for( i = 0; i < intvlsSum; i++ )
 		{
 			if(i > 0)
 				meanFilter->Process( sig[i], gauss_pyr[o][i]->width, gauss_pyr[o][i]->height, OffsetAct, OffsetPrev);
 
-			meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
+			//meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
 
 			OffsetPrev = OffsetAct;
 			OffsetAct += sizeOfImages[o];
-
-			cvNamedWindow( "Matches", 1 );
-			cvShowImage( "Matches", gauss_pyr[o][i] );
-			cvWaitKey( 0 );
 		}
 	}
 
@@ -872,7 +832,7 @@ Builds Gaussian scale space pyramid from an image
 	cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 
 	free( sig );	
-	return gauss_pyr;
+	return meanFilter->cmBufPyramid;
 }
 
 

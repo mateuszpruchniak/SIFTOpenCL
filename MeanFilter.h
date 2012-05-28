@@ -9,9 +9,6 @@ class MeanFilter :
 	public GPUBase
 {
 
-	cl_mem cmBufPyramid;
-
-
 public:
 
 	/*!
@@ -23,6 +20,8 @@ public:
 	* Constructor.
 	*/
 	MeanFilter();
+
+	cl_mem cmBufPyramid;
 	
 	bool Process(float sigma, int imageWidth, int imageHeight, int OffsetAct, int OffsetPrev);
 
