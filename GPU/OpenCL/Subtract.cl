@@ -1,20 +1,26 @@
 
 
-__kernel void ckSub(__global float* ucSource, __global float* ucSource2, __global float* ucDest,
-                      int ImageWidth, int ImageHeight)
+__kernel void ckSub(__global float* ucSource, __global float* ucDest, int Offset, int OffsetNext,
+					   int ImageWidth, int ImageHeight)
 {
-	    int iImagePosX = get_global_id(0) > ImageWidth  ? ImageWidth  : get_global_id(0);
-	    int iDevYPrime = get_global_id(1) > ImageHeight ? ImageHeight : get_global_id(1);
-		
-		int iDevGMEMOffset = mul24(iDevYPrime, ImageWidth) + iImagePosX;
-		
-		
-		float res = ucSource2[iDevGMEMOffset] - ucSource[iDevGMEMOffset];
-		
+		int pozX = 0;	
+		int pozY = 0;
+		int punktOffset = 0;
+		int punktOffsetNext = 0;
 
-		// Write out to GMEM with restored offset
-		if((iDevYPrime <= ImageHeight) && (iImagePosX <= ImageWidth))
+		pozX = get_global_id(0) > ImageWidth  ? ImageWidth  : get_global_id(0);
+		pozY = get_global_id(1) > ImageHeight ? ImageHeight : get_global_id(1);
+		
+		punktOffset = Offset + mul24(pozY, ImageWidth) + pozX;
+		punktOffsetNext = OffsetNext + mul24(pozY, ImageWidth) + pozX;
+
+
+		float res = ucSource[punktOffsetNext] - ucSource[punktOffset];
+
+
+		if((pozY <= ImageHeight) && (pozX <= ImageWidth))
 		{
-			ucDest[iDevGMEMOffset] = res;
+			ucDest[punktOffset] = res;
 		}
+
 }

@@ -16,6 +16,7 @@
 	 descr_width = SIFT_DESCR_WIDTH;
 	 descr_hist_bins = SIFT_DESCR_HIST_BINS;
 	 
+
 	 meanFilter = new MeanFilter();
 	 subtract = new Subtract();
 	 detectExt = new DetectExtrema(SIFT_MAX_NUMBER_KEYS);
@@ -69,11 +70,14 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
 	
 	octvs = log( (float)MIN( init_img->width, init_img->height ) ) / log((float)2) - 2;
+	sizeOfImages = new int[octvs];
+	imageWidth = new int[octvs];
+	imageHeight = new int[octvs];
+
+	cmBufPyramidGauss = BuildGaussPyr( init_img, octvs, intvls, sigma );
 	
-	cl_mem cmBufPyramid = BuildGaussPyr( init_img, octvs, intvls, sigma );
 	
-	
-	dog_pyr = BuildDogPyr( cmBufPyramid, octvs, intvls );
+	dog_pyr = BuildDogPyr( cmBufPyramidGauss, octvs, intvls );
 	
 	storage = cvCreateMemStorage( 0 );
 	
@@ -664,61 +668,6 @@ Allocates and initializes a new feature
 	return feat;
 }
 
- /*
-Builds a difference of Gaussians scale space pyramid by subtracting adjacent
-intervals of a Gaussian pyramid
-
-@param gauss_pyr Gaussian scale-space pyramid
-@param octvs number of octaves of scale space
-@param intvls number of intervals per octave
-
-@return Returns a difference of Gaussians scale space pyramid as an
-	octvs x (intvls + 2) array
-*/
- IplImage*** SiftGPU::BuildDogPyr( cl_mem cmBufPyramid, int octvs, int intvls )
-{
-	IplImage*** dog_pyr;
-	int i, o;
-
-	dog_pyr = (IplImage***)calloc( octvs, sizeof( IplImage** ) );
-	for( i = 0; i < octvs; i++ )
-		dog_pyr[i] = (IplImage**)calloc( intvls + 2, sizeof(IplImage*) );
-
-
-
-
-
-	for( o = 0; o < octvs; o++ )
-		for( i = 0; i < intvls + 2; i++ )
-		{
-			/*cvNamedWindow( "sub1", 1 );
-			cvShowImage( "sub1", gauss_pyr[o][i+1] );
-			cvWaitKey( 0 );*/
-
-			dog_pyr[o][i] = cvCreateImage( cvGetSize(gauss_pyr[o][i]),
-				32, 1 );
-
-			/************************ GPU **************************/
-			if(SIFTCPU)
-				cvSub( gauss_pyr[o][i+1], gauss_pyr[o][i], dog_pyr[o][i], NULL );
-			else
-			{
-				subtract->SendImageToBuffers(2,gauss_pyr[o][i+1],gauss_pyr[o][i]);
-				subtract->Process();
-				subtract->ReceiveImageData(1,dog_pyr[o][i]);
-			}
-			/************************ GPU **************************/
-
-			/*cvNamedWindow( "sub", 1 );
-			cvShowImage( "sub", dog_pyr[o][i] );
-			cvWaitKey( 0 );*/
-			
-		}
-
-	return dog_pyr;
-}
-
-
 
  /*
 Builds Gaussian scale space pyramid from an image
@@ -737,9 +686,7 @@ Builds Gaussian scale space pyramid from an image
 	float sig_total, sig_prev, k;
 	int i, o;
 	int intvlsSum = intvls + 3;
-	int* sizeOfImages = new int[octvs];
-	int* imageWidth = new int[octvs];
-	int* imageHeight = new int[octvs];
+	
 	float SumOfPyramid = 0;
 
 	gauss_pyr = (IplImage***)calloc( octvs, sizeof( IplImage** ) );
@@ -779,7 +726,7 @@ Builds Gaussian scale space pyramid from an image
 		imageWidth[o] = gauss_pyr[o][0]->width;
 	}
 
-
+	sizeOfPyramid = SumOfPyramid;
 
 	meanFilter->CreateBuffer(SumOfPyramid);
 
@@ -806,9 +753,6 @@ Builds Gaussian scale space pyramid from an image
 		}
 	}
 
-
-	
-
 	offset = 0;
 	int OffsetAct = 0;
 	int OffsetPrev = 0;
@@ -832,8 +776,98 @@ Builds Gaussian scale space pyramid from an image
 	cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 
 	free( sig );	
+
+	cmBufPyramidGauss = meanFilter->cmBufPyramid;
+
 	return meanFilter->cmBufPyramid;
 }
+
+
+ /*
+Builds a difference of Gaussians scale space pyramid by subtracting adjacent
+intervals of a Gaussian pyramid
+
+@param gauss_pyr Gaussian scale-space pyramid
+@param octvs number of octaves of scale space
+@param intvls number of intervals per octave
+
+@return Returns a difference of Gaussians scale space pyramid as an
+	octvs x (intvls + 2) array
+*/
+ IplImage*** SiftGPU::BuildDogPyr( cl_mem a, int octvs, int intvls )
+{
+	IplImage*** dog_pyr;
+	int i, o;
+/*
+	dog_pyr = (IplImage***)calloc( octvs, sizeof( IplImage** ) );
+	for( i = 0; i < octvs; i++ )
+		dog_pyr[i] = (IplImage**)calloc( intvls + 2, sizeof(IplImage*) );
+*/
+
+
+	subtract->CreateBuffer(sizeOfPyramid);
+
+	cmBufPyramidDOG = subtract->cmBufPyramid;
+
+	int intvlsSum = intvls + 3;
+	int OffsetAct = 0;
+	int OffsetNext = 0;
+
+	for( o = 0; o < octvs; o++ )
+	{
+		for( i = 0; i < intvlsSum; i++ )
+		{
+			OffsetNext += sizeOfImages[o];
+			if(i < intvlsSum-1)
+			{
+				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetAct, OffsetNext);
+
+				subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
+
+				cvNamedWindow( "sub", 1 );
+				cvShowImage( "sub", gauss_pyr[o][i] );
+				cvWaitKey( 0 );
+				
+			}
+			OffsetAct = OffsetNext;
+		}
+	}
+
+
+
+
+	//for( o = 0; o < octvs; o++ )
+	//	for( i = 0; i < intvls + 2; i++ )
+	//	{
+	//		/*cvNamedWindow( "sub1", 1 );
+	//		cvShowImage( "sub1", gauss_pyr[o][i+1] );
+	//		cvWaitKey( 0 );*/
+
+	//		dog_pyr[o][i] = cvCreateImage( cvGetSize(gauss_pyr[o][i]),
+	//			32, 1 );
+
+	//		/************************ GPU **************************/
+	//		if(SIFTCPU)
+	//			cvSub( gauss_pyr[o][i+1], gauss_pyr[o][i], dog_pyr[o][i], NULL );
+	//		else
+	//		{
+	//			subtract->SendImageToBuffers(2,gauss_pyr[o][i+1],gauss_pyr[o][i]);
+	//			subtract->Process();
+	//			subtract->ReceiveImageData(1,dog_pyr[o][i]);
+	//		}
+	//		/************************ GPU **************************/
+
+	//		/*cvNamedWindow( "sub", 1 );
+	//		cvShowImage( "sub", dog_pyr[o][i] );
+	//		cvWaitKey( 0 );*/
+	//		
+	//	}
+
+	return dog_pyr;
+}
+
+
+
 
 
  /*

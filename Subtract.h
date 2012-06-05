@@ -9,6 +9,14 @@ class Subtract :
 {
 public:
 
+	cl_mem cmBufPyramid;
+
+	bool CreateBuffer( float size );
+
+	bool ReceiveImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct);
+
+	bool Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetAct, int OffsetPrev);
+
 	/*!
 	* Destructor.
 	*/

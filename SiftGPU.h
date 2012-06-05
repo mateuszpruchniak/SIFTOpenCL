@@ -113,7 +113,14 @@ private:
 	Subtract* subtract;
 	DetectExtrema* detectExt;
 	
+	int sizeOfPyramid;
+	int* sizeOfImages;
+	int* imageWidth;
+	int* imageHeight;
 	
+	cl_mem cmBufPyramidGauss;
+	cl_mem cmBufPyramidDOG;
+
 	IplImage*** gauss_pyr;
 
 	IplImage* CreateInitialImg( IplImage* img, int img_dbl, float sigma );
