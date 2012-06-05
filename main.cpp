@@ -31,6 +31,24 @@ double RecvTime = 0;
 int main()
 {
 
+	int a[10];
+	a[0] = 0;
+	a[1] = 1;
+	a[2] = 2;
+	a[3] = 3;
+	a[4] = 4;
+	a[5] = 5;
+
+
+	int* b;
+
+	b = &a[2];
+
+	cout << b[1] << endl;
+
+
+
+
 	char* img1_file = "c:\\opel.jpg";
 	char* img2_file = "c:\\opel.jpg";
 	IplImage* img1, * img2, *stacked;

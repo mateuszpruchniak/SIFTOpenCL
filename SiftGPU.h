@@ -127,8 +127,8 @@ private:
 	IplImage* ConvertToGray32( IplImage* img );
 	cl_mem BuildGaussPyr( IplImage* base, int octvs, int intvls, float sigma );
 	IplImage* Downsample( IplImage* img );
-	IplImage*** BuildDogPyr( cl_mem cmBufPyramid, int octvs, int intvls );
-	CvSeq* ScaleSpaceExtrema( IplImage*** dog_pyr, int octvs, int intvls, float contr_thr, int curv_thr, CvMemStorage* storage );
+	void BuildDogPyr( cl_mem cmBufPyramid, int octvs, int intvls );
+	CvSeq* ScaleSpaceExtrema(int octvs, int intvls, float contr_thr, int curv_thr, CvMemStorage* storage );
 	feature* NewFeature( void );
 	float InterpContr( IplImage*** dog_pyr, int octv, int intvl, int r, int c, float xi, float xr, float xc );
 	void Hessian3D( IplImage*** dog_pyr, int octv, int intvl, int r, int c, float H[][3] );

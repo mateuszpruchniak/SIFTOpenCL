@@ -77,12 +77,12 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 	cmBufPyramidGauss = BuildGaussPyr( init_img, octvs, intvls, sigma );
 	
 	
-	dog_pyr = BuildDogPyr( cmBufPyramidGauss, octvs, intvls );
+	BuildDogPyr( cmBufPyramidGauss, octvs, intvls );
 	
 	storage = cvCreateMemStorage( 0 );
 	
 
-	features = ScaleSpaceExtrema( dog_pyr, octvs, intvls, contr_thr, curv_thr, storage );
+	features = ScaleSpaceExtrema(octvs, intvls, contr_thr, curv_thr, storage );
 
 
 	/* sort features by decreasing scale and move from CvSeq to array */
@@ -148,7 +148,7 @@ based on contrast and ratio of principal curvatures.
 @return Returns an array of detected features whose scales, orientations,
 	and descriptors are yet to be determined.
 */
- CvSeq* SiftGPU::ScaleSpaceExtrema( IplImage*** dog_pyr, int octvs, int intvls,
+ CvSeq* SiftGPU::ScaleSpaceExtrema(int octvs, int intvls,
 								   float contr_thr, int curv_thr,
 								   CvMemStorage* storage )
 {
@@ -165,9 +165,9 @@ based on contrast and ratio of principal curvatures.
 	int number = 0;
 	int numberRej = 0;
 	
-	IplImage* img = cvCreateImage( cvGetSize(dog_pyr[0][0]), 32, 1 );
+	//IplImage* img = cvCreateImage( cvGetSize(dog_pyr[0][0]), 32, 1 );
 
-	cvZero(img);
+	//cvZero(img);
 
 	features = cvCreateSeq( 0, sizeof(CvSeq), sizeof(feature), storage );
 
@@ -178,126 +178,158 @@ based on contrast and ratio of principal curvatures.
 	//detectExt->CreateBuffersOut(img->width*img->height*sizeof(float),1);
 	/************************ GPU **************************/
 
-	for( o = 0; o < octvs; o++ )
-		for( i = 1; i <= intvls; i++ )
-		{
-			
-			if(SIFTCPU)
-			{
-				
-				Keys keys[1000];
+	//for( o = 0; o < octvs; o++ )
+	//	for( i = 1; i <= intvls; i++ )
+	//	{
+	//		
+	//		if(SIFTCPU)
+	//		{
+	//			
+	//			Keys keys[1000];
 
-				int maxNumberKeys = 1000;
-				for (int i =0 ; i < maxNumberKeys ; i++)
-				{
-					keys[i].x = 0.0;
-					keys[i].y = 0.0;
-					keys[i].intvl = 0.0;
-					keys[i].octv = 0.0;
-					keys[i].subintvl = 0.0;
-					keys[i].scx = 0.0;
-					keys[i].scy = 0.0;
-					keys[i].mag = 0.0;
-					keys[i].ori = 0.0;
-				}
+	//			int maxNumberKeys = 1000;
+	//			for (int i =0 ; i < maxNumberKeys ; i++)
+	//			{
+	//				keys[i].x = 0.0;
+	//				keys[i].y = 0.0;
+	//				keys[i].intvl = 0.0;
+	//				keys[i].octv = 0.0;
+	//				keys[i].subintvl = 0.0;
+	//				keys[i].scx = 0.0;
+	//				keys[i].scy = 0.0;
+	//				keys[i].mag = 0.0;
+	//				keys[i].ori = 0.0;
+	//			}
 
-				IplImage* img = cvCreateImage( cvGetSize(dog_pyr[o][i]), 32, 1 );
-				cvZero(img);
-				
-				int numberExtrema = 0;
-				int number = 0;
-				int numberRej = 0;
+	//			IplImage* img = cvCreateImage( cvGetSize(dog_pyr[o][i]), 32, 1 );
+	//			cvZero(img);
+	//			
+	//			int numberExtrema = 0;
+	//			int number = 0;
+	//			int numberRej = 0;
 
-				for(r = SIFT_IMG_BORDER; r < dog_pyr[o][0]->height-SIFT_IMG_BORDER; r++)
-				for(c = SIFT_IMG_BORDER; c < dog_pyr[o][0]->width-SIFT_IMG_BORDER; c++)
-					/* perform preliminary check on contrast */
-				{
-					
-						if( abs( pixval32f( dog_pyr[o][i], r, c ) ) > prelim_contr_thr )
-						{
-							if( IsExtremum( dog_pyr, o, i, r, c ) )
-							{
+	//			for(r = SIFT_IMG_BORDER; r < dog_pyr[o][0]->height-SIFT_IMG_BORDER; r++)
+	//			for(c = SIFT_IMG_BORDER; c < dog_pyr[o][0]->width-SIFT_IMG_BORDER; c++)
+	//				/* perform preliminary check on contrast */
+	//			{
+	//				
+	//					if( abs( pixval32f( dog_pyr[o][i], r, c ) ) > prelim_contr_thr )
+	//					{
+	//						if( IsExtremum( dog_pyr, o, i, r, c ) )
+	//						{
 
-								feat = InterpExtremum(dog_pyr, o, i, r, c, intvls, contr_thr);
-								if( feat )
-								{
-									ddata = FeatDetectionData( feat );
+	//							feat = InterpExtremum(dog_pyr, o, i, r, c, intvls, contr_thr);
+	//							if( feat )
+	//							{
+	//								ddata = FeatDetectionData( feat );
 
-									if( ! IsTooEdgeLike( dog_pyr[ddata->octv][ddata->intvl],
-										ddata->r, ddata->c, curv_thr ) )
-									{
-										num++;
-										cvSeqPush( features, feat );
-									}
-									else
-										free( ddata );
-									free( feat );
-								}
-							}
-						}
-					
-				}
-			}
-			else 
-			{
+	//								if( ! IsTooEdgeLike( dog_pyr[ddata->octv][ddata->intvl],
+	//									ddata->r, ddata->c, curv_thr ) )
+	//								{
+	//									num++;
+	//									cvSeqPush( features, feat );
+	//								}
+	//								else
+	//									free( ddata );
+	//								free( feat );
+	//							}
+	//						}
+	//					}
+	//				
+	//			}
+	//		}
+	//		else 
+	//		{
 				/************************ GPU **************************/
 				
-				num = 0;
-				numRemoved = 0;
+		int intvlsSum = intvls + 3;
+		int OffsetAct = 0;
+		int OffsetNext = 0;
+		int OffsetPrev = 0;
 
-				int total = features->total;
+		for( o = 0; o < octvs; o++ )
+		{
+			for( i = 0; i < intvls; i++ )
+			{
+				
+						
+				OffsetNext += sizeOfImages[o];
+				
+				
 
-				Keys keysArray[SIFT_MAX_NUMBER_KEYS];
-				for (int i =0 ; i < SIFT_MAX_NUMBER_KEYS ; i++)
+				if( i > 0 )
 				{
-					keysArray[i].x = 0.0;
-					keysArray[i].y = 0.0;
-					keysArray[i].intvl = 0.0;
-					keysArray[i].octv = 0.0;
-					keysArray[i].subintvl = 0.0;
-					keysArray[i].scx = 0.0;
-					keysArray[i].scy = 0.0;
-				}
-				detectExt->SendImageToBuffers(3,dog_pyr[o][i-1],dog_pyr[o][i],dog_pyr[o][i+1], gauss_pyr[o][i]);
-				detectExt->Process(&num, &numRemoved, prelim_contr_thr, i, o, gauss_pyr[o][i], keysArray);
-				//detectExt->ReceiveImageData(img);
-				
-				total = features->total;
 
-				number = num;
+					num = 0;
+					numRemoved = 0;
 
-				struct detection_data* ddata;
+					int total = features->total;
 
-				
-
-				for(int ik = 0; ik < number ; ik++)
-				{ 
-					feat = NewFeature();
-					ddata = FeatDetectionData( feat );
-					feat->img_pt.x = feat->x = keysArray[ik].scx;
-					feat->img_pt.y = feat->y = keysArray[ik].scy;
-					ddata->r = keysArray[ik].y;
-					ddata->c = keysArray[ik].x;
-					ddata->subintvl = keysArray[ik].subintvl;
-					ddata->octv = keysArray[ik].octv;
-					ddata->intvl = keysArray[ik].intvl;
-					feat->scl = keysArray[ik].scl;
-					ddata->scl_octv = keysArray[ik].scl_octv;
-					feat->ori = keysArray[ik].ori;
-					feat->d = 128;
-
-					for(int i = 0; i < 128 ; i++ )
+					Keys keysArray[SIFT_MAX_NUMBER_KEYS];
+					for (int j = 0 ; j < SIFT_MAX_NUMBER_KEYS ; j++)
 					{
-						feat->descr[i] = keysArray[ik].desc[i];
+						keysArray[j].x = 0.0;
+						keysArray[j].y = 0.0;
+						keysArray[j].intvl = 0.0;
+						keysArray[j].octv = 0.0;
+						keysArray[j].subintvl = 0.0;
+						keysArray[j].scx = 0.0;
+						keysArray[j].scy = 0.0;
 					}
 
-					cvSeqPush( features, feat );
-					free( feat );
-				}
+
+					detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, &numRemoved, prelim_contr_thr, i, o, keysArray);
 				
+
+					/*subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], sizeOfImages[o]*3, sizeOfImages);
+					cvNamedWindow( "sub", 1 );
+					cvShowImage( "sub", gauss_pyr[o][i] );
+					cvWaitKey( 0 );*/
+
+					total = features->total;
+
+					number = num;
+
+					struct detection_data* ddata;
+
+					
+
+					/*for(int ik = 0; ik < number ; ik++)
+					{ 
+						feat = NewFeature();
+						ddata = FeatDetectionData( feat );
+						feat->img_pt.x = feat->x = keysArray[ik].scx;
+						feat->img_pt.y = feat->y = keysArray[ik].scy;
+						ddata->r = keysArray[ik].y;
+						ddata->c = keysArray[ik].x;
+						ddata->subintvl = keysArray[ik].subintvl;
+						ddata->octv = keysArray[ik].octv;
+						ddata->intvl = keysArray[ik].intvl;
+						feat->scl = keysArray[ik].scl;
+						ddata->scl_octv = keysArray[ik].scl_octv;
+						feat->ori = keysArray[ik].ori;
+						feat->d = 128;
+
+						for(int i = 0; i < 128 ; i++ )
+						{
+							feat->descr[i] = keysArray[ik].desc[i];
+						}
+
+						cvSeqPush( features, feat );
+						free( feat );
+					}*/
+				}
+
+				OffsetPrev = OffsetAct;
+				OffsetAct += sizeOfImages[o];
+
 			}
-			/************************ GPU **************************/
 		}
+
+
+		//	}
+		//	/************************ GPU **************************/
+		//}
 
 	return features;
 }
@@ -794,7 +826,7 @@ intervals of a Gaussian pyramid
 @return Returns a difference of Gaussians scale space pyramid as an
 	octvs x (intvls + 2) array
 */
- IplImage*** SiftGPU::BuildDogPyr( cl_mem a, int octvs, int intvls )
+void SiftGPU::BuildDogPyr( cl_mem a, int octvs, int intvls )
 {
 	IplImage*** dog_pyr;
 	int i, o;
@@ -822,12 +854,11 @@ intervals of a Gaussian pyramid
 			{
 				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetAct, OffsetNext);
 
-				subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
+				//subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
 
-				cvNamedWindow( "sub", 1 );
-				cvShowImage( "sub", gauss_pyr[o][i] );
-				cvWaitKey( 0 );
-				
+				//cvNamedWindow( "sub", 1 );
+				//cvShowImage( "sub", gauss_pyr[o][i] );
+				//cvWaitKey( 0 );
 			}
 			OffsetAct = OffsetNext;
 		}
@@ -863,7 +894,6 @@ intervals of a Gaussian pyramid
 	//		
 	//	}
 
-	return dog_pyr;
 }
 
 

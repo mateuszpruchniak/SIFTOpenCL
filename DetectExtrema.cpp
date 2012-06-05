@@ -47,7 +47,10 @@ DetectExtrema::DetectExtrema(int _maxNumberKeys): GPUBase("C:\\Users\\Mati\\Desk
 }
 
 
-bool DetectExtrema::Process(int* numExtr, int* numExtrRej, float prelim_contr_thr, int intvl, int octv, IplImage* img, Keys* keys)
+
+
+
+bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetPrev , int OffsetAct, int OffsetNext, int* numExtr, int* numExtrRej, float prelim_contr_thr, int intvl, int octv, Keys* keys)
 {
 	counter = 0;
 	int numberExtr = 0;
@@ -66,11 +69,12 @@ bool DetectExtrema::Process(int* numExtr, int* numExtrRej, float prelim_contr_th
 	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)imageWidth);
 	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)imageHeight);
 
+
 	int iLocalPixPitch = iBlockDimX + 2;
-	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListIn[0]);
-	GPUError |= clSetKernelArg(GPUKernel, 1, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListIn[1]);
-	GPUError |= clSetKernelArg(GPUKernel, 2, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListIn[2]);
-	GPUError |= clSetKernelArg(GPUKernel, 3, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListOut[0]);
+	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&gaussPyr);
+	GPUError |= clSetKernelArg(GPUKernel, 1, sizeof(cl_int), (void*)&OffsetPrev);
+	GPUError |= clSetKernelArg(GPUKernel, 2, sizeof(cl_int), (void*)&OffsetAct);
+	GPUError |= clSetKernelArg(GPUKernel, 3, sizeof(cl_int), (void*)&OffsetPrev);
 	GPUError |= clSetKernelArg(GPUKernel, 4, sizeof(cl_mem), (void*)&cmDevBufKeys);
 	GPUError |= clSetKernelArg(GPUKernel, 5, sizeof(cl_int), (void*)&imageWidth);
 	GPUError |= clSetKernelArg(GPUKernel, 6, sizeof(cl_int), (void*)&imageHeight);
@@ -81,7 +85,11 @@ bool DetectExtrema::Process(int* numExtr, int* numExtrRej, float prelim_contr_th
 	GPUError |= clSetKernelArg(GPUKernel, 11, sizeof(cl_mem), (void*)&cmDevBufNumberReject);
 	if(GPUError) return false;
 
-	if(clEnqueueNDRangeKernel( GPUCommandQueue, GPUKernel, 2, NULL, GPUGlobalWorkSize, GPULocalWorkSize, 0, NULL, NULL)) return false;
+	if(clEnqueueNDRangeKernel( GPUCommandQueue, GPUKernel, 2, NULL, GPUGlobalWorkSize, GPULocalWorkSize, 0, NULL, NULL))
+	{
+		cout << "Error clEnqueueNDRangeKernel" << endl;
+		return false;
+	}
 
 	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufNumber, CL_TRUE, 0, sizeof(int), (void*)&numberExtr, 0, NULL, NULL);
 	CheckError(GPUError);
@@ -89,14 +97,14 @@ bool DetectExtrema::Process(int* numExtr, int* numExtrRej, float prelim_contr_th
 	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufNumberReject, CL_TRUE, 0, sizeof(int), (void*)&numberRejExtr, 0, NULL, NULL);
 	CheckError(GPUError);
 
-	GPULocalWorkSize[0] = iBlockDimX;
+	/*GPULocalWorkSize[0] = iBlockDimX;
 	GPULocalWorkSize[1] = iBlockDimY;
 	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)(*numExtr));
 	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)1);
 
 	iLocalPixPitch = iBlockDimX + 2;
-	GPUError |= clSetKernelArg(GPUKernelDesc, 0, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListIn[1]);
-	GPUError |= clSetKernelArg(GPUKernelDesc, 1, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListOut[0]);
+	GPUError = clSetKernelArg(GPUKernelDesc, 0, sizeof(cl_mem), (void*)&gaussPyr);
+	GPUError |= clSetKernelArg(GPUKernelDesc, 1, sizeof(cl_uint), (void*)&OffsetAct);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 2, sizeof(cl_mem), (void*)&cmDevBufCount);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 3, sizeof(cl_mem), (void*)&cmDevBufKeys);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 4, sizeof(cl_int), (void*)&imageWidth);
@@ -110,6 +118,7 @@ bool DetectExtrema::Process(int* numExtr, int* numExtrRej, float prelim_contr_th
 	if(clEnqueueNDRangeKernel( GPUCommandQueue, GPUKernelDesc, 2, NULL, GPUGlobalWorkSize, GPULocalWorkSize, 0, NULL, NULL)) 
 	{
 		cout << "Error clEnqueueNDRangeKernel" << endl;
+		return false;
 	}
 	
 	
@@ -117,7 +126,7 @@ bool DetectExtrema::Process(int* numExtr, int* numExtrRej, float prelim_contr_th
 	CheckError(GPUError);
 	
 	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufKeys, CL_TRUE, 0, maxNumberKeys*sizeof(Keys), (void*)keys, 0, NULL, NULL);
-	CheckError(GPUError);
+	CheckError(GPUError);*/
 	
 	*numExtr = numberExtr;
 	*numExtrRej = numberRejExtr;

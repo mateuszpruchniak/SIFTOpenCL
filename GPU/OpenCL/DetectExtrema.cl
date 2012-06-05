@@ -95,7 +95,7 @@ int is_extremum(__global float* dataIn1, __global float* dataIn2, __global float
 {
 	float val = GetPixel(dataIn2, pozX, pozY, ImageWidth, ImageHeight);
 	
-	if( val > 0.0 )
+	/*if( val > 0.0 )
 	{
 		
 				if( val < GetPixel(dataIn1, pozX-1, pozY-1, ImageWidth, ImageHeight) )
@@ -213,7 +213,7 @@ int is_extremum(__global float* dataIn1, __global float* dataIn2, __global float
 					return 0;
 				if( val > GetPixel(dataIn3, pozX+1, pozY+1, ImageWidth, ImageHeight) )
 					return 0;
-	}
+	}*/
 
 	
 	
@@ -698,41 +698,49 @@ Normalizes a feature's descriptor vector to unitl length
 
 
 
-__kernel void ckDetect(__global float* dataIn1, __global float* dataIn2, __global float* dataIn3, __global float* ucDest,
-						__global float* keys,
-						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number, __global int* numberRej)
+__kernel void ckDetect(__global float* ucSource, int OffsetPrev , int Offset, int OffsetNext,
+						__global float* keys, int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number, __global int* numberRej)
 {
 	int pozX = get_global_id(0);
 	int pozY = get_global_id(1);
 	int GMEMOffset = mul24(pozY, ImageWidth) + pozX;
 	
+
+	__global float* dataIn1 = &ucSource[OffsetPrev];
+	__global float* dataIn2 = &ucSource[Offset];
+	__global float* dataIn3 = &ucSource[OffsetNext];
+
+
 	float xc;
 	float xr;
 	float xi;
 
 	int numberExt = 0;
+	*number = 0;
+
 
 	float pixel = GetPixel(dataIn2, pozX, pozY, ImageWidth, ImageHeight);
 
+
 	if( pozX < ImageWidth-SIFT_IMG_BORDER && pozY < ImageHeight-SIFT_IMG_BORDER && pozX > SIFT_IMG_BORDER && pozY > SIFT_IMG_BORDER
-		&& ABS(pixel) > prelim_contr_thr &&  is_extremum( dataIn1, dataIn2, dataIn2, pozX, pozY, ImageWidth, ImageHeight) == 1  )
+		&& ABS(pixel) > prelim_contr_thr &&  is_extremum( dataIn1, dataIn2, dataIn3, pozX, pozY, ImageWidth, ImageHeight) == 1  )
 	{
 		float feat = interp_extremum( dataIn1, dataIn2, dataIn3, pozX, pozY, ImageWidth, ImageHeight, SIFT_INTVLS, SIFT_CONTR_THR, intvl, &xi, &xr, &xc);
 		if( feat && is_too_edge_like( dataIn2, pozX, pozY, ImageWidth, ImageHeight, SIFT_CURV_THR ) != 1 )
 		{
 			float intvl2 = intvl + xi; 
 
-			//float	scx = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
-			//float	scy = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
-			//float	x = pozX;
-			//float	y = pozY;
-			//float	subintvl = xi;
-			//float	intvlRes = intvl;
-			//float	octvRes = octv;
-			//float	scl = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;  
-			//float	scl_octv = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
-			//float	ori = 0;
-			//float	mag = 0;
+			float	scx = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
+			float	scy = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
+			float	x = pozX;
+			float	y = pozY;
+			float	subintvl = xi;
+			float	intvlRes = intvl;
+			float	octvRes = octv;
+			float	scl = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;  
+			float	scl_octv = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
+			float	ori = 0;
+			float	mag = 0;
 
 			int offset = 139;
 			numberExt = atomic_add(number, (int)1);
@@ -750,15 +758,18 @@ __kernel void ckDetect(__global float* dataIn1, __global float* dataIn2, __globa
 			keys[numberExt*offset + 10] = 0;//omax;
 		}
 	} 
+	
+
 }
 
 
 
-__kernel void ckDesc( __global float* gauss_pyr, __global float* ucDest,
+__kernel void ckDesc( __global float* ucSource, int Offset,
 						__global int* numberExtrema, __global float* keys,
 						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number)
  {
 
+	 __global float* gauss_pyr = &ucSource[Offset];
 
 	int numberExt = atomic_add(numberExtrema, (int)1);
 	int offset = 139;
