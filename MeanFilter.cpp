@@ -40,7 +40,7 @@ bool MeanFilter::Process(float sigma, int imageWidth, int imageHeight, int Offse
 }
 
 
-bool MeanFilter::SendImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct)
+bool MeanFilter::SendImageToBufPyramid( IplImage* img, int offset)
 {
 	clock_t start, finish;
 	double duration = 0;
@@ -63,7 +63,7 @@ bool MeanFilter::CreateBuffer( float size )
 
 
 
-bool MeanFilter::ReceiveImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct)
+bool MeanFilter::ReceiveImageToBufPyramid( IplImage* img, int offset)
 {
 	clock_t start, finish;
 	double duration = 0;

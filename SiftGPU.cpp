@@ -1,4 +1,4 @@
-#include "SiftGPU.h"
+																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																			  #include "SiftGPU.h"
 #include "imgfeatures.h"
 #include "utils.h"
 #include <cxcore.h>
@@ -100,8 +100,7 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
 	cvReleaseMemStorage( &storage );
 	cvReleaseImage( &init_img );
-	ReleasePyr( &gauss_pyr, octvs, intvls + 3 );
-	ReleasePyr( &dog_pyr, octvs, intvls + 2 );
+	//ReleasePyr( &gauss_pyr, octvs, intvls + 3 );
 	
 	printf("Found: %d \n", n);
 	printf("\n ----------- DoSift End --------------- \n");
@@ -165,82 +164,10 @@ based on contrast and ratio of principal curvatures.
 	int number = 0;
 	int numberRej = 0;
 	
-	//IplImage* img = cvCreateImage( cvGetSize(dog_pyr[0][0]), 32, 1 );
-
-	//cvZero(img);
-
 	features = cvCreateSeq( 0, sizeof(CvSeq), sizeof(feature), storage );
 
 	int total = features->total;
 
-	/************************ GPU **************************/
-	//detectExt->CreateBuffersIn(dog_pyr[0][0]->width*dog_pyr[0][0]->height*sizeof(float),4);
-	//detectExt->CreateBuffersOut(img->width*img->height*sizeof(float),1);
-	/************************ GPU **************************/
-
-	//for( o = 0; o < octvs; o++ )
-	//	for( i = 1; i <= intvls; i++ )
-	//	{
-	//		
-	//		if(SIFTCPU)
-	//		{
-	//			
-	//			Keys keys[1000];
-
-	//			int maxNumberKeys = 1000;
-	//			for (int i =0 ; i < maxNumberKeys ; i++)
-	//			{
-	//				keys[i].x = 0.0;
-	//				keys[i].y = 0.0;
-	//				keys[i].intvl = 0.0;
-	//				keys[i].octv = 0.0;
-	//				keys[i].subintvl = 0.0;
-	//				keys[i].scx = 0.0;
-	//				keys[i].scy = 0.0;
-	//				keys[i].mag = 0.0;
-	//				keys[i].ori = 0.0;
-	//			}
-
-	//			IplImage* img = cvCreateImage( cvGetSize(dog_pyr[o][i]), 32, 1 );
-	//			cvZero(img);
-	//			
-	//			int numberExtrema = 0;
-	//			int number = 0;
-	//			int numberRej = 0;
-
-	//			for(r = SIFT_IMG_BORDER; r < dog_pyr[o][0]->height-SIFT_IMG_BORDER; r++)
-	//			for(c = SIFT_IMG_BORDER; c < dog_pyr[o][0]->width-SIFT_IMG_BORDER; c++)
-	//				/* perform preliminary check on contrast */
-	//			{
-	//				
-	//					if( abs( pixval32f( dog_pyr[o][i], r, c ) ) > prelim_contr_thr )
-	//					{
-	//						if( IsExtremum( dog_pyr, o, i, r, c ) )
-	//						{
-
-	//							feat = InterpExtremum(dog_pyr, o, i, r, c, intvls, contr_thr);
-	//							if( feat )
-	//							{
-	//								ddata = FeatDetectionData( feat );
-
-	//								if( ! IsTooEdgeLike( dog_pyr[ddata->octv][ddata->intvl],
-	//									ddata->r, ddata->c, curv_thr ) )
-	//								{
-	//									num++;
-	//									cvSeqPush( features, feat );
-	//								}
-	//								else
-	//									free( ddata );
-	//								free( feat );
-	//							}
-	//						}
-	//					}
-	//				
-	//			}
-	//		}
-	//		else 
-	//		{
-				/************************ GPU **************************/
 				
 		int intvlsSum = intvls + 3;
 		int OffsetAct = 0;
@@ -252,17 +179,13 @@ based on contrast and ratio of principal curvatures.
 			for( i = 0; i < intvls; i++ )
 			{
 				
-						
 				OffsetNext += sizeOfImages[o];
 				
-				
-
 				if( i > 0 )
 				{
 
 					num = 0;
 					numRemoved = 0;
-
 					int total = features->total;
 
 					Keys keysArray[SIFT_MAX_NUMBER_KEYS];
@@ -279,22 +202,12 @@ based on contrast and ratio of principal curvatures.
 
 
 					detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, &numRemoved, prelim_contr_thr, i, o, keysArray);
-				
-
-					/*subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], sizeOfImages[o]*3, sizeOfImages);
-					cvNamedWindow( "sub", 1 );
-					cvShowImage( "sub", gauss_pyr[o][i] );
-					cvWaitKey( 0 );*/
-
 					total = features->total;
-
 					number = num;
 
 					struct detection_data* ddata;
 
-					
-
-					/*for(int ik = 0; ik < number ; ik++)
+					for(int ik = 0; ik < number ; ik++)
 					{ 
 						feat = NewFeature();
 						ddata = FeatDetectionData( feat );
@@ -317,7 +230,7 @@ based on contrast and ratio of principal curvatures.
 
 						cvSeqPush( features, feat );
 						free( feat );
-					}*/
+					}
 				}
 
 				OffsetPrev = OffsetAct;
@@ -325,11 +238,6 @@ based on contrast and ratio of principal curvatures.
 
 			}
 		}
-
-
-		//	}
-		//	/************************ GPU **************************/
-		//}
 
 	return features;
 }
@@ -761,6 +669,10 @@ Builds Gaussian scale space pyramid from an image
 	sizeOfPyramid = SumOfPyramid;
 
 	meanFilter->CreateBuffer(SumOfPyramid);
+	subtract->CreateBuffer(SumOfPyramid);
+
+	cmBufPyramidGauss = meanFilter->cmBufPyramid;
+	cmBufPyramidDOG = subtract->cmBufPyramid;
 
 	int offset = 0;
 
@@ -778,7 +690,7 @@ Builds Gaussian scale space pyramid from an image
 				gauss_pyr[o][i] = gauss_pyr[o][i-1];
 			}
 
-			meanFilter->SendImageToBufPyramid(gauss_pyr[o][i], offset, sizeOfImages);
+			meanFilter->SendImageToBufPyramid(gauss_pyr[o][i], offset);
 			
 			offset += sizeOfImages[o];
 
@@ -794,10 +706,10 @@ Builds Gaussian scale space pyramid from an image
 		for( i = 0; i < intvlsSum; i++ )
 		{
 			if(i > 0)
+			{
 				meanFilter->Process( sig[i], gauss_pyr[o][i]->width, gauss_pyr[o][i]->height, OffsetAct, OffsetPrev);
-
-			//meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
-
+				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct);
+			}
 			OffsetPrev = OffsetAct;
 			OffsetAct += sizeOfImages[o];
 		}
@@ -809,7 +721,7 @@ Builds Gaussian scale space pyramid from an image
 
 	free( sig );	
 
-	cmBufPyramidGauss = meanFilter->cmBufPyramid;
+	
 
 	return meanFilter->cmBufPyramid;
 }
@@ -828,71 +740,39 @@ intervals of a Gaussian pyramid
 */
 void SiftGPU::BuildDogPyr( cl_mem a, int octvs, int intvls )
 {
-	IplImage*** dog_pyr;
-	int i, o;
-/*
-	dog_pyr = (IplImage***)calloc( octvs, sizeof( IplImage** ) );
-	for( i = 0; i < octvs; i++ )
-		dog_pyr[i] = (IplImage**)calloc( intvls + 2, sizeof(IplImage*) );
-*/
-
-
-	subtract->CreateBuffer(sizeOfPyramid);
-
-	cmBufPyramidDOG = subtract->cmBufPyramid;
-
-	int intvlsSum = intvls + 3;
-	int OffsetAct = 0;
-	int OffsetNext = 0;
-
-	for( o = 0; o < octvs; o++ )
-	{
-		for( i = 0; i < intvlsSum; i++ )
-		{
-			OffsetNext += sizeOfImages[o];
-			if(i < intvlsSum-1)
-			{
-				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetAct, OffsetNext);
-
-				//subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
-
-				//cvNamedWindow( "sub", 1 );
-				//cvShowImage( "sub", gauss_pyr[o][i] );
-				//cvWaitKey( 0 );
-			}
-			OffsetAct = OffsetNext;
-		}
-	}
-
-
-
-
-	//for( o = 0; o < octvs; o++ )
-	//	for( i = 0; i < intvls + 2; i++ )
-	//	{
-	//		/*cvNamedWindow( "sub1", 1 );
-	//		cvShowImage( "sub1", gauss_pyr[o][i+1] );
-	//		cvWaitKey( 0 );*/
-
-	//		dog_pyr[o][i] = cvCreateImage( cvGetSize(gauss_pyr[o][i]),
-	//			32, 1 );
-
-	//		/************************ GPU **************************/
-	//		if(SIFTCPU)
-	//			cvSub( gauss_pyr[o][i+1], gauss_pyr[o][i], dog_pyr[o][i], NULL );
-	//		else
-	//		{
-	//			subtract->SendImageToBuffers(2,gauss_pyr[o][i+1],gauss_pyr[o][i]);
-	//			subtract->Process();
-	//			subtract->ReceiveImageData(1,dog_pyr[o][i]);
-	//		}
-	//		/************************ GPU **************************/
-
-	//		/*cvNamedWindow( "sub", 1 );
-	//		cvShowImage( "sub", dog_pyr[o][i] );
-	//		cvWaitKey( 0 );*/
-	//		
-	//	}
+//	IplImage*** dog_pyr;
+//	int i, o;
+///*
+//	dog_pyr = (IplImage***)calloc( octvs, sizeof( IplImage** ) );
+//	for( i = 0; i < octvs; i++ )
+//		dog_pyr[i] = (IplImage**)calloc( intvls + 2, sizeof(IplImage*) );
+//*/
+//
+//
+//	int intvlsSum = intvls + 3;
+//	int OffsetAct = 0;
+//	int OffsetNext = 0;
+//
+//	for( o = 0; o < octvs; o++ )
+//	{
+//		for( i = 0; i < intvlsSum; i++ )
+//		{
+//			OffsetNext += sizeOfImages[o];
+//			if(i < intvlsSum-1)
+//			{
+//				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetAct, OffsetNext);
+//
+//				//subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
+//
+//				//cvNamedWindow( "sub", 1 );
+//				//cvShowImage( "sub", gauss_pyr[o][i] );
+//				//cvWaitKey( 0 );
+//			}
+//			OffsetAct = OffsetNext;
+//		}
+//	}
+//
+//	cmBufPyramidDOG = subtract->cmBufPyramid;
 
 }
 
@@ -1044,4 +924,4 @@ void SiftGPU::BuildDogPyr( cl_mem a, int octvs, int intvls )
 
 	 cvReleaseImage( &gray8 );
 	 return gray32;
- }
+ }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           

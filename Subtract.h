@@ -17,6 +17,8 @@ public:
 
 	bool Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetAct, int OffsetPrev);
 
+	bool SendImageToBufPyramid( IplImage* img, int offset);
+
 	/*!
 	* Destructor.
 	*/

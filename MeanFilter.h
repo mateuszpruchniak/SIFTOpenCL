@@ -27,8 +27,8 @@ public:
 
 	bool CreateBuffer( float size );
 
-	bool SendImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct);
+	bool SendImageToBufPyramid( IplImage* img, int offset);
 
-	bool ReceiveImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct);
+	bool ReceiveImageToBufPyramid( IplImage* img, int offset);
 };
 
