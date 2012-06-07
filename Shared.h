@@ -2,7 +2,7 @@
 #ifndef	SHARED_H_
 #define SHARED_H_
 
-#define SIFT_MAX_NUMBER_KEYS	2000
+#define SIFT_MAX_NUMBER_KEYS	4000
 
 
 extern double SendTime;

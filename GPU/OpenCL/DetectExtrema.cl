@@ -1,4 +1,3 @@
-
 /******************************* Defs and macros *****************************/
 
 /** default number of sampled intervals per octave */
@@ -95,7 +94,7 @@ int is_extremum(__global float* dataIn1, __global float* dataIn2, __global float
 {
 	float val = GetPixel(dataIn2, pozX, pozY, ImageWidth, ImageHeight);
 	
-	/*if( val > 0.0 )
+	if( val > 0.0 )
 	{
 		
 				if( val < GetPixel(dataIn1, pozX-1, pozY-1, ImageWidth, ImageHeight) )
@@ -213,7 +212,7 @@ int is_extremum(__global float* dataIn1, __global float* dataIn2, __global float
 					return 0;
 				if( val > GetPixel(dataIn3, pozX+1, pozY+1, ImageWidth, ImageHeight) )
 					return 0;
-	}*/
+	}
 
 	
 	
@@ -724,33 +723,22 @@ __kernel void ckDetect(__global float* ucSource, __global float* keys, __global 
 		if( feat && is_too_edge_like( dataIn2, pozX, pozY, ImageWidth, ImageHeight, SIFT_CURV_THR ) != 1 )
 		{
 			float intvl2 = intvl + xi; 
-
-			//float	scx = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
-			//float	scy = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
-			//float	x = pozX;
-			//float	y = pozY;
-			//float	subintvl = xi;
-			//float	intvlRes = intvl;
-			//float	octvRes = octv;
-			//float	scl = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;  
-			//float	scl_octv = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
-			//float	ori = 0;
-			//float	mag = 0;
+			
 
 			int offset = 139;
 			numberExt = atomic_add(number, (int)1);
 
-			//keys[numberExt*offset] = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
-			//keys[numberExt*offset + 1] = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
-			//keys[numberExt*offset + 2] = pozX;
-			//keys[numberExt*offset + 3] = pozY;
-			//keys[numberExt*offset + 4] = xi;
-			//keys[numberExt*offset + 5] = intvl;
-			//keys[numberExt*offset + 6] = octv;
-			//keys[numberExt*offset + 7] = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;
-			//keys[numberExt*offset + 8] = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
-			//keys[numberExt*offset + 9] = 0;//orients[iteratorOrient];
-			//keys[numberExt*offset + 10] = 0;//omax;
+			keys[numberExt*offset] = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
+			keys[numberExt*offset + 1] = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
+			keys[numberExt*offset + 2] = pozX;
+			keys[numberExt*offset + 3] = pozY;
+			keys[numberExt*offset + 4] = xi;
+			keys[numberExt*offset + 5] = intvl;
+			keys[numberExt*offset + 6] = octv;
+			keys[numberExt*offset + 7] = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;
+			keys[numberExt*offset + 8] = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
+			keys[numberExt*offset + 9] = 0;//orients[iteratorOrient];
+			keys[numberExt*offset + 10] = 0;//omax;
 		}
 	} 
 	

@@ -86,8 +86,6 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
 
 	/* sort features by decreasing scale and move from CvSeq to array */
-	
-	
 	cvSeqSort( features, (CvCmpFunc)FeatureCmp, NULL );
 	n = features->total;
 	feat = (feature*)calloc( n, sizeof(feature) );
@@ -100,8 +98,10 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
 	cvReleaseMemStorage( &storage );
 	cvReleaseImage( &init_img );
-	//ReleasePyr( &gauss_pyr, octvs, intvls + 3 );
 	
+	//ReleasePyr( &gauss_pyr, octvs, intvls + 3 );
+	//ReleasePyr( &dog_pyr, octvs, intvls + 2 );
+
 	printf("Found: %d \n", n);
 	printf("\n ----------- DoSift End --------------- \n");
 	
@@ -174,9 +174,10 @@ based on contrast and ratio of principal curvatures.
 		int OffsetNext = 0;
 		int OffsetPrev = 0;
 
+
 		for( o = 0; o < octvs; o++ )
 		{
-			for( i = 0; i < intvls; i++ )
+			for( i = 0; i < intvlsSum; i++ )
 			{
 				
 				OffsetNext += sizeOfImages[o];
@@ -212,6 +213,19 @@ based on contrast and ratio of principal curvatures.
 					meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
 					cvNamedWindow( "sub", 1 );
 					cvShowImage( "sub", gauss_pyr[o][i] );
+					cvWaitKey( 0 );
+
+					subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
+					cvNamedWindow( "sub", 1 );
+					cvShowImage( "sub", gauss_pyr[o][i] );
+					cvWaitKey( 0 );
+					subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct);
+					cvNamedWindow( "sub", 1 );
+					cvShowImage( "sub", gauss_pyr[o][i] );
+					cvWaitKey( 0 );
+					subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
+					cvNamedWindow( "sub", 1 );
+					cvShowImage( "sub", gauss_pyr[o][i] );
 					cvWaitKey( 0 );*/
 
 					detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, &numRemoved, prelim_contr_thr, i, o, keysArray);
@@ -220,6 +234,7 @@ based on contrast and ratio of principal curvatures.
 					number = num;
 
 					struct detection_data* ddata;
+
 
 					for(int ik = 0; ik < number ; ik++)
 					{ 
@@ -234,7 +249,7 @@ based on contrast and ratio of principal curvatures.
 						ddata->intvl = keysArray[ik].intvl;
 						feat->scl = keysArray[ik].scl;
 						ddata->scl_octv = keysArray[ik].scl_octv;
-						feat->ori = keysArray[ik].ori;
+						feat->ori = (double)keysArray[ik].ori;
 						feat->d = 128;
 
 						for(int i = 0; i < 128 ; i++ )
@@ -245,6 +260,7 @@ based on contrast and ratio of principal curvatures.
 						cvSeqPush( features, feat );
 						free( feat );
 					}
+
 				}
 
 				OffsetPrev = OffsetAct;
@@ -721,15 +737,28 @@ Builds Gaussian scale space pyramid from an image
 		{
 			if(i > 0)
 			{
-				meanFilter->Process( sig[i], gauss_pyr[o][i]->width, gauss_pyr[o][i]->height, OffsetAct, OffsetPrev);
+				meanFilter->Process( sig[i], gauss_pyr[o][i]->width, gauss_pyr[o][i]->height, OffsetPrev, OffsetAct);
 				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct);
+
 			}
 			OffsetPrev = OffsetAct;
 			OffsetAct += sizeOfImages[o];
 		}
 	}
 
-	
+	//OffsetPrev = 0;
+	//for( o = 0; o < octvs; o++ )
+	//{
+	//	for( i = 0; i < intvlsSum; i++ )
+	//	{
+	//		meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
+	//		cvNamedWindow( "sub", 1 );
+	//		cvShowImage( "sub", gauss_pyr[o][i] );
+	//		cvWaitKey( 0 );
+	//		OffsetPrev += sizeOfImages[o];
+	//	}
+	//}
+	//
 
 	cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
 

@@ -13,7 +13,7 @@ public:
 
 	bool CreateBuffer( float size );
 
-	bool ReceiveImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct);
+	bool ReceiveImageToBufPyramid( IplImage* img, int offset);
 
 	bool Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetAct, int OffsetNext);
 

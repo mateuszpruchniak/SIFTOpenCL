@@ -73,9 +73,6 @@ bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int 
 	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)imageWidth);
 	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)imageHeight);
 
-	//__kernel void ckDetect(__global float* ucSource, __global float* keys, __global int* number, __global int* numberRej, int OffsetPrev, int Offset, int OffsetNext,
-	//int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv)
-
 
 	int iLocalPixPitch = iBlockDimX + 2;
 	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&dogPyr);

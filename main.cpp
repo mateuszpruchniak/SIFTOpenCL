@@ -30,7 +30,7 @@ double RecvTime = 0;
 // The main function!
 int main()
 {
-	char* img1_file = "c:\\opel.jpg";
+	char* img1_file = "c:\\box.jpg";
 	char* img2_file = "c:\\box.jpg";
 	IplImage* img1, * img2, *stacked;
 	char* img_file_name = "c:\\scene2.jpg";

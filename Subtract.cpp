@@ -57,7 +57,7 @@ bool Subtract::Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int Off
 	
 	int iLocalPixPitch = iBlockDimX + 2;
 	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&gaussPyr);
-	GPUError = clSetKernelArg(GPUKernel, 1, sizeof(cl_mem), (void*)&cmBufPyramid);
+	GPUError |= clSetKernelArg(GPUKernel, 1, sizeof(cl_mem), (void*)&cmBufPyramid);
 	GPUError |= clSetKernelArg(GPUKernel, 2, sizeof(cl_uint), (void*)&OffsetAct);
 	GPUError |= clSetKernelArg(GPUKernel, 3, sizeof(cl_uint), (void*)&OffsetNext);
 	GPUError |= clSetKernelArg(GPUKernel, 4, sizeof(cl_uint), (void*)&imageWidth);
@@ -69,7 +69,7 @@ bool Subtract::Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int Off
 	return true;
 }
 
-bool Subtract::ReceiveImageToBufPyramid( IplImage* img, int offset, int* sizeOfImgOct)
+bool Subtract::ReceiveImageToBufPyramid( IplImage* img, int offset)
 {
 	clock_t start, finish;
 	double duration = 0;
