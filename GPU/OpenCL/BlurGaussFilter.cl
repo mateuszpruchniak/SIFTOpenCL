@@ -3,12 +3,11 @@
 
 
 
-__kernel void ckConv(__global float* ucSource, int Offset, int OffsetPrev,
-					   int ImageWidth, int ImageHeight, float sigma)
+__kernel void ckConv(__global float* ucSource, int Offset, int OffsetNext,
+					   int ImageWidth, int ImageHeight, float sigma, int maskSize)
 {
 		int pozX = 0;	
 		int pozY = 0;
-		int maskSize = 0;
 		float pi = 3.1415926535897932384626433832795;
 		int r = 0;
 		float sum = 0.0;
@@ -20,10 +19,7 @@ __kernel void ckConv(__global float* ucSource, int Offset, int OffsetPrev,
 		pozX = get_global_id(0) > ImageWidth  ? ImageWidth  : get_global_id(0);
 		pozY = get_global_id(1) > ImageHeight ? ImageHeight : get_global_id(1);
 		
-		punktOffset = Offset + mul24(pozY, ImageWidth) + pozX;
-
-		maskSize = ROUND(sigma * 3 * 2 + 1) | 1;
-
+		punktOffset = OffsetNext + mul24(pozY, ImageWidth) + pozX;
 
 
 		r = (int)floor( (float)maskSize / 2 );
@@ -37,10 +33,11 @@ __kernel void ckConv(__global float* ucSource, int Offset, int OffsetPrev,
 				int x = pozX + ii >= 0 && pozX + ii <= ImageWidth  ? pozX + ii : 0;
 				int y = pozY + j >= 0 && pozY + j <= ImageHeight ? pozY + j : 0;
 
-				int offset = OffsetPrev + mul24(y, ImageWidth) + x;
+				int offset = Offset + mul24(y, ImageWidth) + x;
 				sum += G * ucSource[offset];
 			}
 		}
+
 
 
 		if((pozY <= ImageHeight) && (pozX <= ImageWidth))

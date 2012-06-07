@@ -13,11 +13,15 @@ MeanFilter::MeanFilter(): GPUBase("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTO
 
 }
 
-bool MeanFilter::Process(float sigma, int imageWidth, int imageHeight, int OffsetAct, int OffsetPrev)
+bool MeanFilter::Process(float sigma, int imageWidth, int imageHeight, int OffsetAct, int OffsetNext)
 {
 
 	OffsetAct = OffsetAct / 4;
-	OffsetPrev = OffsetPrev / 4;
+	OffsetNext = OffsetNext / 4;
+
+	int maskSize = 0;
+	maskSize = cvRound(sigma * 3.0 * 2.0 + 1.0) | 1;
+
 
 	size_t GPULocalWorkSize[2];
 	GPULocalWorkSize[0] = iBlockDimX;
@@ -28,10 +32,11 @@ bool MeanFilter::Process(float sigma, int imageWidth, int imageHeight, int Offse
 	int iLocalPixPitch = iBlockDimX + 2;
 	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&cmBufPyramid);
 	GPUError |= clSetKernelArg(GPUKernel, 1, sizeof(cl_uint), (void*)&OffsetAct);
-	GPUError |= clSetKernelArg(GPUKernel, 2, sizeof(cl_uint), (void*)&OffsetPrev);
+	GPUError |= clSetKernelArg(GPUKernel, 2, sizeof(cl_uint), (void*)&OffsetNext);
 	GPUError |= clSetKernelArg(GPUKernel, 3, sizeof(cl_uint), (void*)&imageWidth);
 	GPUError |= clSetKernelArg(GPUKernel, 4, sizeof(cl_uint), (void*)&imageHeight);
 	GPUError |= clSetKernelArg(GPUKernel, 5, sizeof(cl_float), (void*)&sigma);
+	GPUError |= clSetKernelArg(GPUKernel, 6, sizeof(cl_uint), (void*)&maskSize);
 
 	if(GPUError) return false;
 

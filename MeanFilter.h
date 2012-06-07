@@ -23,7 +23,7 @@ public:
 
 	cl_mem cmBufPyramid;
 	
-	bool Process(float sigma, int imageWidth, int imageHeight, int OffsetAct, int OffsetPrev);
+	bool Process(float sigma, int imageWidth, int imageHeight, int OffsetAct, int OffsetNext);
 
 	bool CreateBuffer( float size );
 

@@ -73,20 +73,24 @@ bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int 
 	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)imageWidth);
 	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)imageHeight);
 
+	//__kernel void ckDetect(__global float* ucSource, __global float* keys, __global int* number, __global int* numberRej, int OffsetPrev, int Offset, int OffsetNext,
+	//int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv)
+
 
 	int iLocalPixPitch = iBlockDimX + 2;
 	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&dogPyr);
-	GPUError |= clSetKernelArg(GPUKernel, 1, sizeof(cl_int), (void*)&OffsetPrev);
-	GPUError |= clSetKernelArg(GPUKernel, 2, sizeof(cl_int), (void*)&OffsetAct);
-	GPUError |= clSetKernelArg(GPUKernel, 3, sizeof(cl_int), (void*)&OffsetPrev);
-	GPUError |= clSetKernelArg(GPUKernel, 4, sizeof(cl_mem), (void*)&cmDevBufKeys);
-	GPUError |= clSetKernelArg(GPUKernel, 5, sizeof(cl_int), (void*)&imageWidth);
-	GPUError |= clSetKernelArg(GPUKernel, 6, sizeof(cl_int), (void*)&imageHeight);
-	GPUError |= clSetKernelArg(GPUKernel, 7, sizeof(cl_float), (void*)&prelim_contr_thr);
-	GPUError |= clSetKernelArg(GPUKernel, 8, sizeof(cl_int), (void*)&intvl);
-	GPUError |= clSetKernelArg(GPUKernel, 9, sizeof(cl_int), (void*)&octv);
-	GPUError |= clSetKernelArg(GPUKernel, 10, sizeof(cl_mem), (void*)&cmDevBufNumber);
-	GPUError |= clSetKernelArg(GPUKernel, 11, sizeof(cl_mem), (void*)&cmDevBufNumberReject);
+	GPUError |= clSetKernelArg(GPUKernel, 1, sizeof(cl_mem), (void*)&cmDevBufKeys);
+	GPUError |= clSetKernelArg(GPUKernel, 2, sizeof(cl_mem), (void*)&cmDevBufNumber);
+	GPUError |= clSetKernelArg(GPUKernel, 3, sizeof(cl_mem), (void*)&cmDevBufNumberReject);
+	GPUError |= clSetKernelArg(GPUKernel, 4, sizeof(cl_int), (void*)&OffsetPrev);
+	GPUError |= clSetKernelArg(GPUKernel, 5, sizeof(cl_int), (void*)&OffsetAct);
+	GPUError |= clSetKernelArg(GPUKernel, 6, sizeof(cl_int), (void*)&OffsetNext);
+	GPUError |= clSetKernelArg(GPUKernel, 7, sizeof(cl_int), (void*)&imageWidth);
+	GPUError |= clSetKernelArg(GPUKernel, 8, sizeof(cl_int), (void*)&imageHeight);
+	GPUError |= clSetKernelArg(GPUKernel, 9, sizeof(cl_float), (void*)&prelim_contr_thr);
+	GPUError |= clSetKernelArg(GPUKernel, 10, sizeof(cl_int), (void*)&intvl);
+	GPUError |= clSetKernelArg(GPUKernel, 11, sizeof(cl_int), (void*)&octv);
+	
 	if(GPUError) return false;
 
 	if(clEnqueueNDRangeKernel( GPUCommandQueue, GPUKernel, 2, NULL, GPUGlobalWorkSize, GPULocalWorkSize, 0, NULL, NULL))
@@ -95,10 +99,12 @@ bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int 
 		return false;
 	}
 
-	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufNumber, CL_TRUE, 0, sizeof(int), (void*)&numberExtr, 0, NULL, NULL);
-	CheckError(GPUError);
+	
 
 	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufNumberReject, CL_TRUE, 0, sizeof(int), (void*)&numberRejExtr, 0, NULL, NULL);
+	CheckError(GPUError);
+
+	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufNumber, CL_TRUE, 0, sizeof(int), (void*)&numberExtr, 0, NULL, NULL);
 	CheckError(GPUError);
 
 	GPULocalWorkSize[0] = iBlockDimX;

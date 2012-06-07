@@ -698,29 +698,24 @@ Normalizes a feature's descriptor vector to unitl length
 
 
 
-__kernel void ckDetect(__global float* ucSource, int OffsetPrev , int Offset, int OffsetNext,
-						__global float* keys, int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number, __global int* numberRej)
+__kernel void ckDetect(__global float* ucSource, __global float* keys, __global int* number, __global int* numberRej, int OffsetPrev, int Offset, int OffsetNext,
+						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv)
 {
-	int pozX = get_global_id(0);
-	int pozY = get_global_id(1);
-	int GMEMOffset = mul24(pozY, ImageWidth) + pozX;
-	
-
 	__global float* dataIn1 = &ucSource[OffsetPrev];
 	__global float* dataIn2 = &ucSource[Offset];
 	__global float* dataIn3 = &ucSource[OffsetNext];
 
-
+	int pozX = get_global_id(0);
+	int pozY = get_global_id(1);
+	int GMEMOffset = mul24(pozY, ImageWidth) + pozX;
+	
 	float xc;
 	float xr;
 	float xi;
 
 	int numberExt = 0;
-	*number = 0;
-
 
 	float pixel = GetPixel(dataIn2, pozX, pozY, ImageWidth, ImageHeight);
-
 
 	if( pozX < ImageWidth-SIFT_IMG_BORDER && pozY < ImageHeight-SIFT_IMG_BORDER && pozX > SIFT_IMG_BORDER && pozY > SIFT_IMG_BORDER
 		&& ABS(pixel) > prelim_contr_thr &&  is_extremum( dataIn1, dataIn2, dataIn3, pozX, pozY, ImageWidth, ImageHeight) == 1  )
@@ -730,32 +725,32 @@ __kernel void ckDetect(__global float* ucSource, int OffsetPrev , int Offset, in
 		{
 			float intvl2 = intvl + xi; 
 
-			float	scx = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
-			float	scy = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
-			float	x = pozX;
-			float	y = pozY;
-			float	subintvl = xi;
-			float	intvlRes = intvl;
-			float	octvRes = octv;
-			float	scl = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;  
-			float	scl_octv = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
-			float	ori = 0;
-			float	mag = 0;
+			//float	scx = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
+			//float	scy = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
+			//float	x = pozX;
+			//float	y = pozY;
+			//float	subintvl = xi;
+			//float	intvlRes = intvl;
+			//float	octvRes = octv;
+			//float	scl = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;  
+			//float	scl_octv = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
+			//float	ori = 0;
+			//float	mag = 0;
 
 			int offset = 139;
 			numberExt = atomic_add(number, (int)1);
 
-			keys[numberExt*offset] = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
-			keys[numberExt*offset + 1] = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
-			keys[numberExt*offset + 2] = pozX;
-			keys[numberExt*offset + 3] = pozY;
-			keys[numberExt*offset + 4] = xi;
-			keys[numberExt*offset + 5] = intvl;
-			keys[numberExt*offset + 6] = octv;
-			keys[numberExt*offset + 7] = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;
-			keys[numberExt*offset + 8] = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
-			keys[numberExt*offset + 9] = 0;//orients[iteratorOrient];
-			keys[numberExt*offset + 10] = 0;//omax;
+			//keys[numberExt*offset] = (float)(( pozX + xc ) * pow( (float)2.0, (float)octv ) / 2.0);
+			//keys[numberExt*offset + 1] = (float)(( pozY + xr ) * pow( (float)2.0, (float)octv ) / 2.0);
+			//keys[numberExt*offset + 2] = pozX;
+			//keys[numberExt*offset + 3] = pozY;
+			//keys[numberExt*offset + 4] = xi;
+			//keys[numberExt*offset + 5] = intvl;
+			//keys[numberExt*offset + 6] = octv;
+			//keys[numberExt*offset + 7] = (SIFT_SIGMA * pow( (float)2.0, (octv + intvl2 / (float)SIFT_INTVLS) )) / 2.0;
+			//keys[numberExt*offset + 8] = SIFT_SIGMA * pow( (float)2.0, (float)(intvl2 / SIFT_INTVLS) );
+			//keys[numberExt*offset + 9] = 0;//orients[iteratorOrient];
+			//keys[numberExt*offset + 10] = 0;//omax;
 		}
 	} 
 	

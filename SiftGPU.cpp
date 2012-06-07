@@ -189,6 +189,7 @@ based on contrast and ratio of principal curvatures.
 					int total = features->total;
 
 					Keys keysArray[SIFT_MAX_NUMBER_KEYS];
+
 					for (int j = 0 ; j < SIFT_MAX_NUMBER_KEYS ; j++)
 					{
 						keysArray[j].x = 0.0;
@@ -200,8 +201,21 @@ based on contrast and ratio of principal curvatures.
 						keysArray[j].scy = 0.0;
 					}
 
+					/*meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
+					cvNamedWindow( "sub", 1 );
+					cvShowImage( "sub", gauss_pyr[o][i] );
+					cvWaitKey( 0 );
+					meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct);
+					cvNamedWindow( "sub", 1 );
+					cvShowImage( "sub", gauss_pyr[o][i] );
+					cvWaitKey( 0 );
+					meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
+					cvNamedWindow( "sub", 1 );
+					cvShowImage( "sub", gauss_pyr[o][i] );
+					cvWaitKey( 0 );*/
 
 					detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, &numRemoved, prelim_contr_thr, i, o, keysArray);
+					
 					total = features->total;
 					number = num;
 

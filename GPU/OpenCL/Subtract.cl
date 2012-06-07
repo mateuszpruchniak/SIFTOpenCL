@@ -15,7 +15,7 @@ __kernel void ckSub(__global float* ucSource, __global float* ucDest, int Offset
 		punktOffsetNext = OffsetNext + mul24(pozY, ImageWidth) + pozX;
 
 
-		float res = ucSource[punktOffsetNext] - ucSource[punktOffset];
+		float res = ucSource[punktOffset] - ucSource[punktOffsetNext];
 
 
 		if((pozY <= ImageHeight) && (pozX <= ImageWidth))
