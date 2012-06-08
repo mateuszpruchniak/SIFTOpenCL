@@ -8,6 +8,7 @@ Copyright (C) 2006-2010  Rob Hess <hess@eecs.oregonstate.edu>
 
 #include "utils.h"
 #include "imgfeatures.h"
+#include <vector>
 
 #include "StdAfx.h"
 #include <cxcore.h>
@@ -21,7 +22,7 @@ static void draw_oxfd_feature( IplImage*, feature*, CvScalar );
 
 static int import_lowe_features( char*, feature** );
 static int export_lowe_features( char*, feature*, int );
-static void draw_lowe_features( IplImage*, feature*, int );
+static void draw_lowe_features( IplImage*, vector<feature*>, int );
 static void draw_lowe_feature( IplImage*, feature*, CvScalar );
 
 /*
@@ -119,30 +120,19 @@ Draws a set of features on an image
 @param feat array of Oxford-type features
 @param n number of features
 */
-void draw_features( IplImage* img, feature* feat, int n )
+void draw_features( IplImage* img, vector<feature*> feat, int n )
 {
 	int type;
 
-	if( n <= 0  ||  ! feat )
+	if( n <= 0  ||  feat.size() <= 0 )
 	{
 		fprintf( stderr, "Warning: no features to draw, %s line %d\n",
 				__FILE__, __LINE__ );
 		return;
 	}
-	type = feat[0].type;
-	switch( type )
-	{
-	case FEATURE_OXFD:
-		draw_oxfd_features( img, feat, n );
-		break;
-	case FEATURE_LOWE:
-		draw_lowe_features( img, feat, n );
-		break;
-	default:
-		fprintf( stderr, "Warning: draw_features(): unrecognized feature" \
-			" type, %s, line %d\n", __FILE__, __LINE__ );
-		break;
-	}
+
+	draw_lowe_features( img, feat, n );
+
 }
 
 
@@ -156,10 +146,10 @@ Calculates the squared Euclidian distance between two feature descriptors.
 @return Returns the squared Euclidian distance between the descriptors of
 f1 and f2.
 */
-double descr_dist_sq( feature* f1, feature* f2 )
+float descr_dist_sq( feature* f1, feature* f2 )
 {
-	double diff, dsq = 0;
-	double* descr1, * descr2;
+	float diff, dsq = 0;
+	float* descr1, * descr2;
 	int i, d;
 
 	d = f1->d;
@@ -196,7 +186,7 @@ static int import_oxfd_features( char* filename, feature** features )
 {
 	feature* f;
 	int i, j, n, d;
-	double x, y, a, b, c, dv;
+	float x, y, a, b, c, dv;
 	FILE* file;
 
 	if( ! features )
@@ -256,7 +246,7 @@ static int import_oxfd_features( char* filename, feature** features )
 			f[i].descr[j] = dv;
 		}
 
-		f[i].scl = f[i].ori = 0;
+		f[i].scl = f[i].orie = 0;
 		f[i].category = 0;
 		//f[i].fwd_match = f[i].bck_match = f[i].mdl_match = NULL;
 		f[i].mdl_pt.x = f[i].mdl_pt.y = -1;
@@ -338,15 +328,15 @@ Draws Oxford-type affine features
 @param feat array of Oxford-type features
 @param n number of features
 */
-static void draw_oxfd_features( IplImage* img, feature* feat, int n )
+static void draw_oxfd_features( IplImage* img, vector<feature*> feat, int n )
 {
-	CvScalar color = CV_RGB( 255, 255, 255 );
+	/*CvScalar color = CV_RGB( 255, 255, 255 );
 	int i;
 
 	if( img-> nChannels > 1 )
 		color = FEATURE_OXFD_COLOR;
 	for( i = 0; i < n; i++ )
-		draw_oxfd_feature( img, feat + i, color );
+		draw_oxfd_feature( img, feat + i, color );*/
 }
 
 
@@ -360,11 +350,11 @@ Draws a single Oxford-type feature
 */
 static void draw_oxfd_feature( IplImage* img, feature* feat, CvScalar color )
 {
-	double m[4] = { feat->a, feat->b, feat->b, feat->c };
-	double v[4] = { 0 };
-	double e[2] = { 0 };
+	float m[4] = { feat->a, feat->b, feat->b, feat->c };
+	float v[4] = { 0 };
+	float e[2] = { 0 };
 	CvMat M, V, E;
-	double alpha, l1, l2;
+	float alpha, l1, l2;
 
 	/* compute axes and orientation of ellipse surrounding affine region */
 	cvInitMatHeader( &M, 2, 2, CV_64FC1, m, CV_AUTOSTEP );
@@ -403,7 +393,7 @@ static int import_lowe_features( char* filename, feature** features )
 {
 	feature* f;
 	int i, j, n, d;
-	double x, y, s, o, dv;
+	float x, y, s, o, dv;
 	FILE* file;
 
 	if( ! features )
@@ -444,7 +434,7 @@ static int import_lowe_features( char* filename, feature** features )
 		f[i].img_pt.x = f[i].x = x;
 		f[i].img_pt.y = f[i].y = y;
 		f[i].scl = s;
-		f[i].ori = o;
+		f[i].orie = o;
 		f[i].d = d;
 		f[i].type = FEATURE_LOWE;
 
@@ -516,7 +506,7 @@ static int export_lowe_features( char* filename, feature* feat, int n )
 	for( i = 0; i < n; i++ )
 	{
 		fprintf( file, "%f %f %f %f", feat[i].y, feat[i].x,
-				feat[i].scl, feat[i].ori );
+				feat[i].scl, feat[i].orie );
 		for( j = 0; j < d; j++ )
 		{
 			/* write 20 descriptor values per line */
@@ -545,7 +535,7 @@ Draws Lowe-type features
 @param feat array of Oxford-type features
 @param n number of features
 */
-static void draw_lowe_features( IplImage* img, feature* feat, int n )
+static void draw_lowe_features( IplImage* img, vector<feature*> feat, int n )
 {
 	CvScalar color = CV_RGB( 255, 255, 255 );
 	int i;
@@ -553,7 +543,7 @@ static void draw_lowe_features( IplImage* img, feature* feat, int n )
 	if( img-> nChannels > 1 )
 		color = FEATURE_LOWE_COLOR;
 	for( i = 0; i < n; i++ )
-		draw_lowe_feature( img, feat + i, color );
+		draw_lowe_feature( img, feat[i], color );
 }
 
 
@@ -568,33 +558,34 @@ Draws a single Lowe-type feature
 static void draw_lowe_feature( IplImage* img, feature* feat, CvScalar color )
 {
 	int len, hlen, blen, start_x, start_y, end_x, end_y, h1_x, h1_y, h2_x, h2_y;
-	double scl, ori;
-	double scale = 5.0;
-	double hscale = 0.75;
+	float scl, ori;
+	float scale = 5.0;
+	float hscale = 0.75;
 	CvPoint start, end, h1, h2;
 
 	/* compute points for an arrow scaled and rotated by feat's scl and ori */
 	start_x = cvRound( feat->x );
 	start_y = cvRound( feat->y );
 	scl = feat->scl;
-	ori = feat->ori;
+	ori = feat->orie;
 	len = cvRound( scl * scale );
 	hlen = cvRound( scl * hscale );
 	blen = len - hlen;
 	end_x = cvRound( len *  cos( ori ) ) + start_x;
 	end_y = cvRound( len * -sin( ori ) ) + start_y;
-	h1_x = cvRound( blen *  cos( ori + CV_PI / 18.0 ) ) + start_x;
-	h1_y = cvRound( blen * -sin( ori + CV_PI / 18.0 ) ) + start_y;
-	h2_x = cvRound( blen *  cos( ori - CV_PI / 18.0 ) ) + start_x;
-	h2_y = cvRound( blen * -sin( ori - CV_PI / 18.0 ) ) + start_y;
+	//h1_x = cvRound( blen *  cos( ori + CV_PI / 18.0 ) ) + start_x;
+	//h1_y = cvRound( blen * -sin( ori + CV_PI / 18.0 ) ) + start_y;
+	//h2_x = cvRound( blen *  cos( ori - CV_PI / 18.0 ) ) + start_x;
+	//h2_y = cvRound( blen * -sin( ori - CV_PI / 18.0 ) ) + start_y;
 	start = cvPoint( start_x, start_y );
 	end = cvPoint( end_x, end_y );
-	h1 = cvPoint( h1_x, h1_y );
-	h2 = cvPoint( h2_x, h2_y );
+	//h1 = cvPoint( h1_x, h1_y );
+	//h2 = cvPoint( h2_x, h2_y );
 
 	cvLine( img, start, end, color, 1, 8, 0 );
-	cvLine( img, end, h1, color, 1, 8, 0 );
-	cvLine( img, end, h2, color, 1, 8, 0 );
+	
+	//cvLine( img, end, h1, color, 1, 8, 0 );
+	//cvLine( img, end, h2, color, 1, 8, 0 );
 }
 
 

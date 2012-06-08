@@ -11,8 +11,10 @@ Copyright (C) 2006-2010  Rob Hess <hess@eecs.oregonstate.edu>
 
 #include "cxcore.h"
 #include "StdAfx.h"
+#include <vector>
 
 
+using namespace std;
 
 
 /** FEATURE_OXFD <BR> FEATURE_LOWE */
@@ -50,15 +52,15 @@ a(x-u)(x-u) + 2b(x-u)(y-v) + c(y-v)(y-v) = 1
 
 typedef struct feature
 {
-	double x;                      /**< x coord */
-	double y;                      /**< y coord */
-	double a;                      /**< Oxford-type affine region parameter */
-	double b;                      /**< Oxford-type affine region parameter */
-	double c;                      /**< Oxford-type affine region parameter */
-	double scl;                    /**< scale of a Lowe-style feature */
-	double ori;                    /**< orientation of a Lowe-style feature */
+	float x;                      /**< x coord */
+	float y;                      /**< y coord */
+	float orie;                    /**< orientation of a Lowe-style feature */
+	float a;                      /**< Oxford-type affine region parameter */
+	float b;                      /**< Oxford-type affine region parameter */
+	float c;                      /**< Oxford-type affine region parameter */
+	float scl;                    /**< scale of a Lowe-style feature */
 	int d;                         /**< descriptor length */
-	double descr[FEATURE_MAX_D];   /**< descriptor */
+	float descr[FEATURE_MAX_D];   /**< descriptor */
 	int type;                      /**< feature type, OXFD or LOWE */
 	int category;                  /**< all-purpose feature category */
 	struct feature* fwd_match;     /**< matching feature from forward image */
@@ -131,7 +133,7 @@ Displays a set of features on an image
 @param feat array of Oxford-type features
 @param n number of features
 */
-extern void draw_features( IplImage* img, feature* feat, int n );
+extern void draw_features( IplImage* img, vector<feature*> feat, int n );
 
 
 /**
@@ -143,7 +145,7 @@ Calculates the squared Euclidian distance between two feature descriptors.
 @return Returns the squared Euclidian distance between the descriptors of
 \a f1 and \a f2.
 */
-extern double descr_dist_sq( feature* f1, feature* f2 );
+extern float descr_dist_sq( feature* f1, feature* f2 );
 
 
 #endif

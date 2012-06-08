@@ -756,12 +756,12 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 
 	int numberExt = atomic_add(numberExtrema, (int)1);
 	int offset = 139;
-	
+
 	int pozX = get_global_id(0);
 	int pozY = get_global_id(1);
 	int GMEMOffset = mul24(pozY, ImageWidth) + pozX;
 
-	
+
 	if( numberExt < *number)
 	{
 		float	scx = keys[numberExt*offset];
@@ -774,16 +774,16 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 		float	scl = keys[numberExt*offset + 7];  
 		float	scl_octv = keys[numberExt*offset + 8];
 		float	ori = keys[numberExt*offset + 9];
-		
+
 
 		float hist[SIFT_ORI_HIST_BINS];
-						
+
 		for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
 			hist[j] = 0;
 
 		ori_hist( gauss_pyr, x, y, ImageWidth, ImageHeight, hist, SIFT_ORI_HIST_BINS,
 						ROUND( SIFT_ORI_RADIUS * scl_octv ),	SIFT_ORI_SIG_FCTR * scl_octv );
-						
+
 		for(int j = 0; j < SIFT_ORI_SMOOTH_PASSES; j++ )
 			smooth_ori_hist( hist, SIFT_ORI_HIST_BINS );
 
@@ -801,12 +801,12 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 
 
 		ori = orients[0];
-		keys[numberExt*offset + 9] = ori;
+		keys[numberExt*offset + 9] = ori;  // -------------- orie
 
 
 		float hist2[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS];
 
-		
+
 		for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
 			for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
 				for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
@@ -814,16 +814,16 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 
 
 		descr_hist( gauss_pyr, keys[numberExt*offset + 2], keys[numberExt*offset + 3], ImageWidth, ImageHeight, keys[numberExt*offset + 9], keys[numberExt*offset + 8], hist2, SIFT_DESCR_WIDTH, SIFT_DESCR_HIST_BINS );
-		
+
 
 		int k = 0;
 		float desc[128];
-							
+
 		for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
 			for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
 				for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
 					desc[k++] = hist2[ii][iii][iiii];
-							
+
 		normalize_descr( desc );
 
 

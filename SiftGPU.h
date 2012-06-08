@@ -118,6 +118,8 @@ private:
 	int* imageWidth;
 	int* imageHeight;
 	
+	int total;
+
 	cl_mem cmBufPyramidGauss;
 	cl_mem cmBufPyramidDOG;
 
@@ -141,6 +143,8 @@ private:
 	void ReleasePyr( IplImage**** pyr, int octvs, int n );
 
 public:
+
+	vector<feature*> vectorFeatures;
 
 	feature* feat;
 

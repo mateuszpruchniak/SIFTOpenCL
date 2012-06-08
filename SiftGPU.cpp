@@ -22,7 +22,7 @@
 	 detectExt = new DetectExtrema(SIFT_MAX_NUMBER_KEYS);
  }
 
-   /*
+	/*
  Compares features for a decreasing-scale ordering.  Intended for use with
  CvSeqSort
 
@@ -44,7 +44,6 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 		 return -1;
 	 return 0;
  }
-
 
  int SiftGPU::DoSift( IplImage* img )
  {
@@ -84,10 +83,9 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
 	features = ScaleSpaceExtrema(octvs, intvls, contr_thr, curv_thr, storage );
 
-
 	/* sort features by decreasing scale and move from CvSeq to array */
 	cvSeqSort( features, (CvCmpFunc)FeatureCmp, NULL );
-	n = features->total;
+	total = n = features->total;
 	feat = (feature*)calloc( n, sizeof(feature) );
 	feat = (feature*)cvCvtSeqToArray( features, feat, CV_WHOLE_SEQ );
 	for( i = 0; i < n; i++ )
@@ -98,14 +96,14 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
 	cvReleaseMemStorage( &storage );
 	cvReleaseImage( &init_img );
-	
+
 	//ReleasePyr( &gauss_pyr, octvs, intvls + 3 );
 	//ReleasePyr( &dog_pyr, octvs, intvls + 2 );
 
 	printf("Found: %d \n", n);
 	printf("\n ----------- DoSift End --------------- \n");
 	
-	return n;
+	return total;
  }
 
 
@@ -131,6 +129,7 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 	 *pyr = NULL;
  }
 
+ 
 
 
  /*
@@ -153,7 +152,6 @@ based on contrast and ratio of principal curvatures.
 {
 	CvSeq* features;
 	float prelim_contr_thr = 0.5 * contr_thr / intvls;
-	feature* feat;
 	struct detection_data* ddata;
 	int o, i, r, c;
 	int num=0;				// Number of keypoins detected
@@ -166,111 +164,117 @@ based on contrast and ratio of principal curvatures.
 	
 	features = cvCreateSeq( 0, sizeof(CvSeq), sizeof(feature), storage );
 
-	int total = features->total;
+	total = features->total;
 
 				
-		int intvlsSum = intvls + 3;
-		int OffsetAct = 0;
-		int OffsetNext = 0;
-		int OffsetPrev = 0;
+	int intvlsSum = intvls + 3;
+	int OffsetAct = 0;
+	int OffsetNext = 0;
+	int OffsetPrev = 0;
 
 
-		for( o = 0; o < octvs; o++ )
+	for( o = 0; o < octvs; o++ )
+	{
+		for( i = 0; i < intvlsSum; i++ )
 		{
-			for( i = 0; i < intvlsSum; i++ )
+				
+			OffsetNext += sizeOfImages[o];
+				
+			if( i > 0 )
 			{
-				
-				OffsetNext += sizeOfImages[o];
-				
-				if( i > 0 )
+
+				num = 0;
+				numRemoved = 0;
+				int total = features->total;
+
+				Keys keysArray[SIFT_MAX_NUMBER_KEYS];
+
+				for (int j = 0 ; j < SIFT_MAX_NUMBER_KEYS ; j++)
 				{
-
-					num = 0;
-					numRemoved = 0;
-					int total = features->total;
-
-					Keys keysArray[SIFT_MAX_NUMBER_KEYS];
-
-					for (int j = 0 ; j < SIFT_MAX_NUMBER_KEYS ; j++)
-					{
-						keysArray[j].x = 0.0;
-						keysArray[j].y = 0.0;
-						keysArray[j].intvl = 0.0;
-						keysArray[j].octv = 0.0;
-						keysArray[j].subintvl = 0.0;
-						keysArray[j].scx = 0.0;
-						keysArray[j].scy = 0.0;
-					}
-
-					/*meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
-					cvNamedWindow( "sub", 1 );
-					cvShowImage( "sub", gauss_pyr[o][i] );
-					cvWaitKey( 0 );
-					meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct);
-					cvNamedWindow( "sub", 1 );
-					cvShowImage( "sub", gauss_pyr[o][i] );
-					cvWaitKey( 0 );
-					meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
-					cvNamedWindow( "sub", 1 );
-					cvShowImage( "sub", gauss_pyr[o][i] );
-					cvWaitKey( 0 );
-
-					subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
-					cvNamedWindow( "sub", 1 );
-					cvShowImage( "sub", gauss_pyr[o][i] );
-					cvWaitKey( 0 );
-					subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct);
-					cvNamedWindow( "sub", 1 );
-					cvShowImage( "sub", gauss_pyr[o][i] );
-					cvWaitKey( 0 );
-					subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
-					cvNamedWindow( "sub", 1 );
-					cvShowImage( "sub", gauss_pyr[o][i] );
-					cvWaitKey( 0 );*/
-
-					detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, &numRemoved, prelim_contr_thr, i, o, keysArray);
-					
-					total = features->total;
-					number = num;
-
-					struct detection_data* ddata;
-
-
-					for(int ik = 0; ik < number ; ik++)
-					{ 
-						feat = NewFeature();
-						ddata = FeatDetectionData( feat );
-						feat->img_pt.x = feat->x = keysArray[ik].scx;
-						feat->img_pt.y = feat->y = keysArray[ik].scy;
-						ddata->r = keysArray[ik].y;
-						ddata->c = keysArray[ik].x;
-						ddata->subintvl = keysArray[ik].subintvl;
-						ddata->octv = keysArray[ik].octv;
-						ddata->intvl = keysArray[ik].intvl;
-						feat->scl = keysArray[ik].scl;
-						ddata->scl_octv = keysArray[ik].scl_octv;
-						feat->ori = (double)keysArray[ik].ori;
-						feat->d = 128;
-
-						for(int i = 0; i < 128 ; i++ )
-						{
-							feat->descr[i] = keysArray[ik].desc[i];
-						}
-
-						cvSeqPush( features, feat );
-						free( feat );
-					}
-
+					keysArray[j].x = 0.0;
+					keysArray[j].y = 0.0;
+					keysArray[j].intvl = 0.0;
+					keysArray[j].octv = 0.0;
+					keysArray[j].subintvl = 0.0;
+					keysArray[j].scx = 0.0;
+					keysArray[j].scy = 0.0;
+					keysArray[j].ori = 0.0;
 				}
 
-				OffsetPrev = OffsetAct;
-				OffsetAct += sizeOfImages[o];
+				/*meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
+				cvNamedWindow( "sub", 1 );
+				cvShowImage( "sub", gauss_pyr[o][i] );
+				cvWaitKey( 0 );
+				meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct);
+				cvNamedWindow( "sub", 1 );
+				cvShowImage( "sub", gauss_pyr[o][i] );
+				cvWaitKey( 0 );
+				meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
+				cvNamedWindow( "sub", 1 );
+				cvShowImage( "sub", gauss_pyr[o][i] );
+				cvWaitKey( 0 );
+
+				subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
+				cvNamedWindow( "sub", 1 );
+				cvShowImage( "sub", gauss_pyr[o][i] );
+				cvWaitKey( 0 );
+				subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct);
+				cvNamedWindow( "sub", 1 );
+				cvShowImage( "sub", gauss_pyr[o][i] );
+				cvWaitKey( 0 );
+				subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
+				cvNamedWindow( "sub", 1 );
+				cvShowImage( "sub", gauss_pyr[o][i] );
+				cvWaitKey( 0 );*/
+
+				detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, &numRemoved, prelim_contr_thr, i, o, keysArray);
+					
+				total = features->total;
+				number = num;
+
+				struct detection_data* ddata;
+
+
+				for(int ik = 0; ik < number ; ik++)
+				{ 
+					feat = NewFeature();
+					ddata = FeatDetectionData( feat );
+					feat->img_pt.x = feat->x = keysArray[ik].scx;
+					feat->img_pt.y = feat->y = keysArray[ik].scy;
+					ddata->r = keysArray[ik].y;
+					ddata->c = keysArray[ik].x;
+					ddata->subintvl = keysArray[ik].subintvl;
+					ddata->octv = keysArray[ik].octv;
+					ddata->intvl = keysArray[ik].intvl;
+					feat->scl = keysArray[ik].scl;
+					ddata->scl_octv = keysArray[ik].scl_octv;
+					feat->orie = (double)keysArray[ik].ori;
+					feat->d = 128;
+
+					for(int i = 0; i < 128 ; i++ )
+					{
+						feat->descr[i] = keysArray[ik].desc[i];
+					}
+
+					cvSeqPush( features, feat );
+					free( feat );
+				}
+
 
 			}
+
+			OffsetPrev = OffsetAct;
+			OffsetAct += sizeOfImages[o];
+
 		}
+	}
+
 
 	return features;
 }
+
+
+
 
 
 /*
