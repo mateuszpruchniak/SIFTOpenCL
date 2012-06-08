@@ -132,10 +132,10 @@ int main()
 
 
 	
-	draw_features( img1, features1, n1 );
-	cvNamedWindow( "d", 1 );
-	cvShowImage( "d", img1 );
-	cvWaitKey(0);
+	//draw_features( img1, features1, n1 );
+	//cvNamedWindow( "d", 1 );
+	//cvShowImage( "d", img1 );
+	//cvWaitKey(0);
 	
 
 

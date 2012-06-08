@@ -37,7 +37,7 @@
 #define SIFT_ORI_SIG_FCTR 1.5
 
 /* determines the radius of the region used in orientation assignment */
-#define SIFT_ORI_RADIUS 3.0 * SIFT_ORI_SIG_FCTR
+#define SIFT_ORI_RADIUS 4.5
 
 /* number of passes of orientation histogram smoothing */
 #define SIFT_ORI_SMOOTH_PASSES 2
@@ -778,68 +778,69 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 		for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
 			hist[j] = 0;
 
-		ori_hist( gauss_pyr, x, y, ImageWidth, ImageHeight, hist, SIFT_ORI_HIST_BINS,
-						ROUND( SIFT_ORI_RADIUS * scl_octv ),	SIFT_ORI_SIG_FCTR * scl_octv );
-
-		for(int j = 0; j < SIFT_ORI_SMOOTH_PASSES; j++ )
-			smooth_ori_hist( hist, SIFT_ORI_HIST_BINS );
-
-		int maxBin = 0;
-
-		float omax = dominant_ori( hist, SIFT_ORI_HIST_BINS, &maxBin );
-
-		float orients[SIFT_ORI_HIST_BINS];
-		for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
-			orients[j] = 0;
-
-		int numberOrient = 0;
-
-		add_good_ori_features(hist, SIFT_ORI_HIST_BINS,	omax * SIFT_ORI_PEAK_RATIO, orients, &numberOrient);
+		ori_hist( gauss_pyr, x, y, ImageWidth, ImageHeight, hist, SIFT_ORI_HIST_BINS, ROUND( SIFT_ORI_RADIUS * scl_octv ), SIFT_ORI_SIG_FCTR * scl_octv );
 
 
-		ori = orients[0];
-		keys[numberExt*offset + 9] = ori;  // -------------- orie
+		//for(int j = 0; j < SIFT_ORI_SMOOTH_PASSES; j++ )
+		//	smooth_ori_hist( hist, SIFT_ORI_HIST_BINS );
+
+		//int maxBin = 0;
+
+		//float omax = dominant_ori( hist, SIFT_ORI_HIST_BINS, &maxBin );
 
 
-		float hist2[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS];
+		//float orients[SIFT_ORI_HIST_BINS];
+		//for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
+		//	orients[j] = 0;
+
+		//int numberOrient = 0;
+
+		//add_good_ori_features(hist, SIFT_ORI_HIST_BINS,	omax * SIFT_ORI_PEAK_RATIO, orients, &numberOrient);
 
 
-		for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
-			for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
-				for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
-					hist2[ii][iii][iiii] = 0.0;
+		//ori = orients[0];
+		//keys[numberExt*offset + 9] = ori;  // -------------- orie
 
 
-		descr_hist( gauss_pyr, keys[numberExt*offset + 2], keys[numberExt*offset + 3], ImageWidth, ImageHeight, keys[numberExt*offset + 9], keys[numberExt*offset + 8], hist2, SIFT_DESCR_WIDTH, SIFT_DESCR_HIST_BINS );
+		//float hist2[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS];
 
 
-		int k = 0;
-		float desc[128];
-
-		for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
-			for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
-				for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
-					desc[k++] = hist2[ii][iii][iiii];
-
-		normalize_descr( desc );
+		//for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
+		//	for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
+		//		for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
+		//			hist2[ii][iii][iiii] = 0.0;
 
 
-		for(int i = 0; i < k; i++ )
-		{
-			if( desc[i] > SIFT_DESCR_MAG_THR )
-				desc[i] = SIFT_DESCR_MAG_THR;
-		}
+		//descr_hist( gauss_pyr, keys[numberExt*offset + 2], keys[numberExt*offset + 3], ImageWidth, ImageHeight, keys[numberExt*offset + 9], keys[numberExt*offset + 8], hist2, SIFT_DESCR_WIDTH, SIFT_DESCR_HIST_BINS );
 
-		normalize_descr( desc );
 
-		// convert floating-point descriptor to integer valued descriptor */
-		for(int i = 0; i < k; i++ )
-		{
-			desc[i] = min( 255, (int)(SIFT_INT_DESCR_FCTR * desc[i]) );
-		}
+		//int k = 0;
+		//float desc[128];
 
-		for(int i = 0; i < k; i++ )
-			keys[numberExt*offset + 11 + i] = desc[i];
+		//for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
+		//	for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
+		//		for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
+		//			desc[k++] = hist2[ii][iii][iiii];
+
+		//normalize_descr( desc );
+
+
+		//for(int i = 0; i < k; i++ )
+		//{
+		//	if( desc[i] > SIFT_DESCR_MAG_THR )
+		//		desc[i] = SIFT_DESCR_MAG_THR;
+		//}
+
+		//normalize_descr( desc );
+
+		//// convert floating-point descriptor to integer valued descriptor */
+		//for(int i = 0; i < k; i++ )
+		//{
+		//	desc[i] = min( 255, (int)(SIFT_INT_DESCR_FCTR * desc[i]) );
+		//}
+
+		//for(int i = 0; i < k; i++ )
+		//	keys[numberExt*offset + 11 + i] = desc[i];
 
 	}
  }
