@@ -12,8 +12,6 @@ private:
 
 	cl_mem cmDevBufNumber;
 
-	cl_mem cmDevBufNumberReject;
-
 	int maxNumberKeys;
 
 	cl_mem cmDevBufKeys;
@@ -41,6 +39,6 @@ public:
 	DetectExtrema(int _maxNumberKeys);
 	
 	
-	bool Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetPrev, int OffsetAct, int OffsetNext,int* numExtr, int* numExtrRej, float prelim_contr_thr, int intvl, int octv, Keys* keys);
+	bool Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetPrev, int OffsetAct, int OffsetNext,int* numExtr, float prelim_contr_thr, int intvl, int octv, Keys* keys);
 };
 

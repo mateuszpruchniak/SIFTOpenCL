@@ -47,15 +47,13 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
  int SiftGPU::DoSift( IplImage* img )
  {
-	printf("\n ----------- DoSift START --------------- \n");
+	//printf("\n ----------- DoSift START --------------- \n");
 	IplImage* init_img;
 	IplImage*** dog_pyr;
 	CvMemStorage* storage;
 	CvSeq* features;
 	int octvs, i, n = 0;
-	
-	meanFilter->CreateBuffersIn(4*img->width*img->height*sizeof(float),3);
-	meanFilter->CreateBuffersOut(4*img->width*img->height*sizeof(float),1);
+	total = 0;
 
 	/* check arguments */
 	if( ! img )
@@ -66,21 +64,16 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 	/* build scale space pyramid; smallest dimension of top level is ~4 pixels */
 
 	init_img = CreateInitialImg( img, img_dbl, sigma );
-
 	
 	octvs = log( (float)MIN( init_img->width, init_img->height ) ) / log((float)2) - 2;
+	
 	sizeOfImages = new int[octvs];
 	imageWidth = new int[octvs];
 	imageHeight = new int[octvs];
 
-	cmBufPyramidGauss = BuildGaussPyr( init_img, octvs, intvls, sigma );
-	
-	
-	BuildDogPyr( cmBufPyramidGauss, octvs, intvls );
-	
+	BuildGaussPyramid( init_img, octvs, intvls, sigma );
 	storage = cvCreateMemStorage( 0 );
 	
-
 	features = ScaleSpaceExtrema(octvs, intvls, contr_thr, curv_thr, storage );
 
 	/* sort features by decreasing scale and move from CvSeq to array */
@@ -96,12 +89,6 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 
 	cvReleaseMemStorage( &storage );
 	cvReleaseImage( &init_img );
-
-	//ReleasePyr( &gauss_pyr, octvs, intvls + 3 );
-	//ReleasePyr( &dog_pyr, octvs, intvls + 2 );
-
-	printf("Found: %d \n", n);
-	printf("\n ----------- DoSift End --------------- \n");
 	
 	return total;
  }
@@ -150,84 +137,44 @@ based on contrast and ratio of principal curvatures.
 								   float contr_thr, int curv_thr,
 								   CvMemStorage* storage )
 {
-	CvSeq* features;
 	float prelim_contr_thr = 0.5 * contr_thr / intvls;
 	struct detection_data* ddata;
 	int o, i, r, c;
 	int num=0;				// Number of keypoins detected
 	int numRemoved=0;		// The number of key points rejected because they failed a test
-
-
 	int numberExtrema = 0;
 	int number = 0;
-	int numberRej = 0;
-	
-	features = cvCreateSeq( 0, sizeof(CvSeq), sizeof(feature), storage );
-
+	CvSeq* features = cvCreateSeq( 0, sizeof(CvSeq), sizeof(feature), storage );
 	total = features->total;
-
-				
 	int intvlsSum = intvls + 3;
 	int OffsetAct = 0;
 	int OffsetNext = 0;
 	int OffsetPrev = 0;
 
+	Keys keysArray[SIFT_MAX_NUMBER_KEYS];
+	/*for (int j = 0 ; j < SIFT_MAX_NUMBER_KEYS ; j++)
+	{
+		keysArray[j].x = 0.0;
+		keysArray[j].y = 0.0;
+		keysArray[j].intvl = 0.0;
+		keysArray[j].octv = 0.0;
+		keysArray[j].subintvl = 0.0;
+		keysArray[j].scx = 0.0;
+		keysArray[j].scy = 0.0;
+		keysArray[j].ori = 0.0;
+	}*/
 
 	for( o = 0; o < octvs; o++ )
 	{
 		for( i = 0; i < intvlsSum; i++ )
 		{
-				
 			OffsetNext += sizeOfImages[o];
 				
 			if( i > 0 )
 			{
-
 				num = 0;
-				numRemoved = 0;
-				int total = features->total;
-
-				Keys keysArray[SIFT_MAX_NUMBER_KEYS];
-
-				for (int j = 0 ; j < SIFT_MAX_NUMBER_KEYS ; j++)
-				{
-					keysArray[j].x = 0.0;
-					keysArray[j].y = 0.0;
-					keysArray[j].intvl = 0.0;
-					keysArray[j].octv = 0.0;
-					keysArray[j].subintvl = 0.0;
-					keysArray[j].scx = 0.0;
-					keysArray[j].scy = 0.0;
-					keysArray[j].ori = 0.0;
-				}
-
-				/*meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
-				cvNamedWindow( "sub", 1 );
-				cvShowImage( "sub", gauss_pyr[o][i] );
-				cvWaitKey( 0 );
-				meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct);
-				cvNamedWindow( "sub", 1 );
-				cvShowImage( "sub", gauss_pyr[o][i] );
-				cvWaitKey( 0 );
-				meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
-				cvNamedWindow( "sub", 1 );
-				cvShowImage( "sub", gauss_pyr[o][i] );
-				cvWaitKey( 0 );
-
-				subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
-				cvNamedWindow( "sub", 1 );
-				cvShowImage( "sub", gauss_pyr[o][i] );
-				cvWaitKey( 0 );
-				subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct);
-				cvNamedWindow( "sub", 1 );
-				cvShowImage( "sub", gauss_pyr[o][i] );
-				cvWaitKey( 0 );
-				subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetNext);
-				cvNamedWindow( "sub", 1 );
-				cvShowImage( "sub", gauss_pyr[o][i] );
-				cvWaitKey( 0 );*/
-
-				detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, &numRemoved, prelim_contr_thr, i, o, keysArray);
+				
+				detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, prelim_contr_thr, i, o, keysArray);
 					
 				total = features->total;
 				number = num;
@@ -248,7 +195,7 @@ based on contrast and ratio of principal curvatures.
 					ddata->intvl = keysArray[ik].intvl;
 					feat->scl = keysArray[ik].scl;
 					ddata->scl_octv = keysArray[ik].scl_octv;
-					feat->orie = (double)keysArray[ik].ori;
+					feat->ori = (double)keysArray[ik].ori;
 					feat->d = 128;
 
 					for(int i = 0; i < 128 ; i++ )
@@ -653,7 +600,7 @@ Builds Gaussian scale space pyramid from an image
 
 @return Returns a Gaussian scale space pyramid as an octvs x (intvls + 3) array
 */
- cl_mem SiftGPU::BuildGaussPyr( IplImage* base, int octvs,
+ bool SiftGPU::BuildGaussPyramid( IplImage* base, int octvs,
 									int intvls, float sigma )
 {
 	float* sig = (float*)calloc( intvls + 3, sizeof(float));
@@ -663,9 +610,7 @@ Builds Gaussian scale space pyramid from an image
 	
 	float SumOfPyramid = 0;
 
-	gauss_pyr = (IplImage***)calloc( octvs, sizeof( IplImage** ) );
-	for( i = 0; i < octvs; i++ )
-		gauss_pyr[i] = (IplImage**)calloc( intvlsSum, sizeof( IplImage* ) );
+	imgArray = (IplImage**)calloc(octvs, sizeof(IplImage*));
 
 	/*
 		precompute Gaussian sigmas using the following formula:
@@ -675,6 +620,8 @@ Builds Gaussian scale space pyramid from an image
 
 	sig[0] = sigma;
 	k = pow( 2.0, 1.0 / intvls );
+
+
 	for( i = 1; i < intvlsSum; i++ )
 	{
 		sig_prev = pow( k, i - 1 ) * sigma;
@@ -682,26 +629,25 @@ Builds Gaussian scale space pyramid from an image
 		sig[i] = sqrt( sig_total * sig_total - sig_prev * sig_prev );
 	}
 
+	imgArray[0] = cvCloneImage(base);
 	
-	gauss_pyr[0][0] = cvCloneImage(base);
-	
-
-	sizeOfImages[0] = gauss_pyr[0][0]->imageSize;
-	SumOfPyramid += gauss_pyr[0][0]->imageSize * intvlsSum;
-	imageHeight[0] = gauss_pyr[0][0]->height;
-	imageWidth[0] = gauss_pyr[0][0]->width;
+	sizeOfImages[0] = imgArray[0]->imageSize;
+	SumOfPyramid += imgArray[0]->imageSize * intvlsSum;
+	imageHeight[0] = imgArray[0]->height;
+	imageWidth[0] = imgArray[0]->width;
 
 	for( o = 1; o < octvs; o++ )
 	{
-		gauss_pyr[o][0] = Downsample( gauss_pyr[o-1][0] );
-		SumOfPyramid += gauss_pyr[o][0]->imageSize * intvlsSum;
-		sizeOfImages[o] = gauss_pyr[o][0]->imageSize;
-		imageHeight[o] = gauss_pyr[o][0]->height;
-		imageWidth[o] = gauss_pyr[o][0]->width;
+		imgArray[o] = Downsample( imgArray[o-1] );
+		SumOfPyramid += imgArray[o]->imageSize * intvlsSum;
+		sizeOfImages[o] = imgArray[o]->imageSize;
+		imageHeight[o] = imgArray[o]->height;
+		imageWidth[o] = imgArray[o]->width;
 	}
 
 	sizeOfPyramid = SumOfPyramid;
-
+	
+	
 	meanFilter->CreateBuffer(SumOfPyramid);
 	subtract->CreateBuffer(SumOfPyramid);
 
@@ -716,18 +662,14 @@ Builds Gaussian scale space pyramid from an image
 		{
 			if( o == 0  &&  i == 0 )
 			{
-
+				meanFilter->SendImageToBufPyramid(imgArray[o], offset);
 			} else if(i == 0)
 			{
-				gauss_pyr[o][i] = Downsample( gauss_pyr[o-1][intvls] );
-			} else {
-				gauss_pyr[o][i] = gauss_pyr[o][i-1];
+				imgArray[o] = Downsample( imgArray[o-1] );
+
+				meanFilter->SendImageToBufPyramid(imgArray[o], offset);
 			}
-
-			meanFilter->SendImageToBufPyramid(gauss_pyr[o][i], offset);
-			
 			offset += sizeOfImages[o];
-
 		}
 	}
 
@@ -741,88 +683,30 @@ Builds Gaussian scale space pyramid from an image
 		{
 			if(i > 0)
 			{
-				meanFilter->Process( sig[i], gauss_pyr[o][i]->width, gauss_pyr[o][i]->height, OffsetPrev, OffsetAct);
+				meanFilter->Process( sig[i], imgArray[o]->width, imgArray[o]->height, OffsetPrev, OffsetAct);
 				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct);
-
 			}
 			OffsetPrev = OffsetAct;
 			OffsetAct += sizeOfImages[o];
 		}
 	}
 
-	//OffsetPrev = 0;
-	//for( o = 0; o < octvs; o++ )
-	//{
-	//	for( i = 0; i < intvlsSum; i++ )
-	//	{
-	//		meanFilter->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetPrev);
-	//		cvNamedWindow( "sub", 1 );
-	//		cvShowImage( "sub", gauss_pyr[o][i] );
-	//		cvWaitKey( 0 );
-	//		OffsetPrev += sizeOfImages[o];
-	//	}
-	//}
-	//
-
-	cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-
-	free( sig );	
-
+	/*OffsetPrev = 0;
+	for( o = 0; o < octvs; o++ )
+	{
+		for( i = 0; i < intvlsSum; i++ )
+		{
+			meanFilter->ReceiveImageToBufPyramid(imgArray[o], OffsetPrev);
+			cvNamedWindow( "sub", 1 );
+			cvShowImage( "sub", imgArray[o] );
+			cvWaitKey( 0 );
+			OffsetPrev += sizeOfImages[o];
+		}
+	}*/
 	
-
-	return meanFilter->cmBufPyramid;
+	free( sig );	
+	return true;
 }
-
-
- /*
-Builds a difference of Gaussians scale space pyramid by subtracting adjacent
-intervals of a Gaussian pyramid
-
-@param gauss_pyr Gaussian scale-space pyramid
-@param octvs number of octaves of scale space
-@param intvls number of intervals per octave
-
-@return Returns a difference of Gaussians scale space pyramid as an
-	octvs x (intvls + 2) array
-*/
-void SiftGPU::BuildDogPyr( cl_mem a, int octvs, int intvls )
-{
-//	IplImage*** dog_pyr;
-//	int i, o;
-///*
-//	dog_pyr = (IplImage***)calloc( octvs, sizeof( IplImage** ) );
-//	for( i = 0; i < octvs; i++ )
-//		dog_pyr[i] = (IplImage**)calloc( intvls + 2, sizeof(IplImage*) );
-//*/
-//
-//
-//	int intvlsSum = intvls + 3;
-//	int OffsetAct = 0;
-//	int OffsetNext = 0;
-//
-//	for( o = 0; o < octvs; o++ )
-//	{
-//		for( i = 0; i < intvlsSum; i++ )
-//		{
-//			OffsetNext += sizeOfImages[o];
-//			if(i < intvlsSum-1)
-//			{
-//				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetAct, OffsetNext);
-//
-//				//subtract->ReceiveImageToBufPyramid(gauss_pyr[o][i], OffsetAct, sizeOfImages);
-//
-//				//cvNamedWindow( "sub", 1 );
-//				//cvShowImage( "sub", gauss_pyr[o][i] );
-//				//cvWaitKey( 0 );
-//			}
-//			OffsetAct = OffsetNext;
-//		}
-//	}
-//
-//	cmBufPyramidDOG = subtract->cmBufPyramid;
-
-}
-
 
 
 
@@ -871,41 +755,11 @@ void SiftGPU::BuildDogPyr( cl_mem a, int octvs, int intvls )
 	 if( img_dbl )
 	 {
 		 sig_diff = sqrt( sigma * sigma - SIFT_INIT_SIGMA * SIFT_INIT_SIGMA * 4 );
-		 dbl = cvCreateImage( cvSize( img->width*2, img->height*2 ),
-			 32, 1 );
+		 dbl = cvCreateImage( cvSize( img->width*2, img->height*2 ), 32, 1 );
+
 		 cvResize( gray, dbl, CV_INTER_CUBIC );
 
-		 /************************ GPU **************************/
-		 //if(SIFTCPU)
-			 cvSmooth( dbl, dbl, CV_GAUSSIAN, 0, 0, sig_diff, sig_diff );
-		 //else
-		 //{
-			// //meanFilter->CreateBuffersIn(dbl->width*dbl->height*sizeof(float),1);
-			// //meanFilter->CreateBuffersOut(dbl->width*dbl->height*sizeof(float),1);
-			// meanFilter->SendImageToBuffers(1,dbl);
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// //meanFilter->Process(sig_diff);
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// meanFilter->ReceiveImageData(1,dbl);
-		 //}
-		 /************************ GPU **************************/
+		 cvSmooth( dbl, dbl, CV_GAUSSIAN, 0, 0, sig_diff, sig_diff );
 
 		 cvReleaseImage( &gray );
 		 return dbl;
@@ -914,35 +768,8 @@ void SiftGPU::BuildDogPyr( cl_mem a, int octvs, int intvls )
 	 {
 		 sig_diff = sqrt( sigma * sigma - SIFT_INIT_SIGMA * SIFT_INIT_SIGMA );
 
-		 /************************ GPU **************************/
-		 //if(SIFTCPU)
-			 cvSmooth( gray, gray, CV_GAUSSIAN, 0, 0, sig_diff, sig_diff );
-		 //else
-		 //{
-			// //meanFilter->CreateBuffersIn(gray->width*gray->height*sizeof(float),1);
-			// //meanFilter->CreateBuffersOut(gray->width*gray->height*sizeof(float),1);
-			// meanFilter->SendImageToBuffers(1,gray);
-			// 
-			// 
-
-
-
-			// 
-			// //meanFilter->Process(sig_diff);
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// 
-			// meanFilter->ReceiveImageData(1,gray);
-		 //}
-		 /************************ GPU **************************/
-
+		 cvSmooth( gray, gray, CV_GAUSSIAN, 0, 0, sig_diff, sig_diff );
+		 
 		 return gray;
 	 }
  }

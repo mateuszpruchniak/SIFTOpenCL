@@ -697,7 +697,7 @@ Normalizes a feature's descriptor vector to unitl length
 
 
 
-__kernel void ckDetect(__global float* ucSource, __global float* keys, __global int* number, __global int* numberRej, int OffsetPrev, int Offset, int OffsetNext,
+__kernel void ckDetect(__global float* ucSource, __global float* keys, __global int* number, int OffsetPrev, int Offset, int OffsetNext,
 						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv)
 {
 	__global float* dataIn1 = &ucSource[OffsetPrev];
@@ -724,7 +724,6 @@ __kernel void ckDetect(__global float* ucSource, __global float* keys, __global 
 		{
 			float intvl2 = intvl + xi; 
 			
-
 			int offset = 139;
 			numberExt = atomic_add(number, (int)1);
 
@@ -741,8 +740,6 @@ __kernel void ckDetect(__global float* ucSource, __global float* keys, __global 
 			keys[numberExt*offset + 10] = 0;//omax;
 		}
 	} 
-	
-
 }
 
 

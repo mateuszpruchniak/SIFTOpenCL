@@ -30,5 +30,7 @@ public:
 	bool SendImageToBufPyramid( IplImage* img, int offset);
 
 	bool ReceiveImageToBufPyramid( IplImage* img, int offset);
+
+
 };
 

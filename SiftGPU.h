@@ -120,16 +120,18 @@ private:
 	
 	int total;
 
+	IplImage** imgArray;
+
 	cl_mem cmBufPyramidGauss;
 	cl_mem cmBufPyramidDOG;
 
-	IplImage*** gauss_pyr;
 
 	IplImage* CreateInitialImg( IplImage* img, int img_dbl, float sigma );
 	IplImage* ConvertToGray32( IplImage* img );
-	cl_mem BuildGaussPyr( IplImage* base, int octvs, int intvls, float sigma );
+	
+	bool BuildGaussPyramid( IplImage* base, int octvs, int intvls, float sigma );
+	
 	IplImage* Downsample( IplImage* img );
-	void BuildDogPyr( cl_mem cmBufPyramid, int octvs, int intvls );
 	CvSeq* ScaleSpaceExtrema(int octvs, int intvls, float contr_thr, int curv_thr, CvMemStorage* storage );
 	feature* NewFeature( void );
 	float InterpContr( IplImage*** dog_pyr, int octv, int intvl, int r, int c, float xi, float xr, float xc );
