@@ -30,7 +30,7 @@ double RecvTime = 0;
 // The main function!
 int main()
 {
-	char* img1_file = "c:\\box.jpg";
+	char* img1_file = "c:\\opel.jpg";
 	char* img2_file = "c:\\scene.jpg";
 	IplImage* img1, * img2, *stacked;
 	char* img_file_name = "c:\\scene2.jpg";
@@ -80,8 +80,8 @@ int main()
 		n1 = siftOpenCL->DoSift(img1);
 		features1 = siftOpenCL->feat;
 
-		n2 = siftOpenCL2->DoSift(img2);
-		features2 = siftOpenCL2->feat;
+		/*n2 = siftOpenCL2->DoSift(img2);
+		features2 = siftOpenCL2->feat;*/
 
 	finish = clock();
 	cout << "------ KONIEC -----" << endl;
@@ -97,34 +97,34 @@ int main()
 	fprintf( stderr, "Found %d features2.\n", n2 );
 
 	
-	kd_root = kdtree_build( features2, n2 );
+	//kd_root = kdtree_build( features2, n2 );
 
-	for(i = 0; i < n1; i++ )
-	{
-		feat = features1 + i;
-		k = kdtree_bbf_knn( kd_root, feat, 2, &nbrs, KDTREE_BBF_MAX_NN_CHKS );
-		if( k == 2 )
-		{
-			d0 = descr_dist_sq( feat, nbrs[0] );
-			d1 = descr_dist_sq( feat, nbrs[1] );
-			if( d0 < d1 * NN_SQ_DIST_RATIO_THR )
-			{
-				pt1 = cvPoint( cvRound( feat->x ), cvRound( feat->y ) );
-				pt2 = cvPoint( cvRound( nbrs[0]->x ), cvRound( nbrs[0]->y ) );
-				pt2.y += img1->height;
-				cvLine( stacked, pt1, pt2, CV_RGB(255,0,255), 1, 8, 0 );
-				m++;
-				features1[i].fwd_match = nbrs[0];
-			}
-		}
-		free( nbrs );
-	}
+	//for(i = 0; i < n1; i++ )
+	//{
+	//	feat = features1 + i;
+	//	k = kdtree_bbf_knn( kd_root, feat, 2, &nbrs, KDTREE_BBF_MAX_NN_CHKS );
+	//	if( k == 2 )
+	//	{
+	//		d0 = descr_dist_sq( feat, nbrs[0] );
+	//		d1 = descr_dist_sq( feat, nbrs[1] );
+	//		if( d0 < d1 * NN_SQ_DIST_RATIO_THR )
+	//		{
+	//			pt1 = cvPoint( cvRound( feat->x ), cvRound( feat->y ) );
+	//			pt2 = cvPoint( cvRound( nbrs[0]->x ), cvRound( nbrs[0]->y ) );
+	//			pt2.y += img1->height;
+	//			cvLine( stacked, pt1, pt2, CV_RGB(255,0,255), 1, 8, 0 );
+	//			m++;
+	//			features1[i].fwd_match = nbrs[0];
+	//		}
+	//	}
+	//	free( nbrs );
+	//}
 
-	fprintf( stderr, "Found %d total matches\n", m );
-	cvNamedWindow( "Matches", 1 );
-	cvShowImage( "Matches", stacked );
-	cvWaitKey( 0 );
-	
+	//fprintf( stderr, "Found %d total matches\n", m );
+	//cvNamedWindow( "Matches", 1 );
+	//cvShowImage( "Matches", stacked );
+	//cvWaitKey( 0 );
+	//
 	
 
 
