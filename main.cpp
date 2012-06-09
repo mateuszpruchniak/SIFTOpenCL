@@ -99,7 +99,7 @@ int main()
 
 
 
-	/* kd_root = kdtree_build( features2, n2 );
+	/*kd_root = kdtree_build( features2, n2 );
 
 	for(i = 0; i < n1; i++ )
 	{
@@ -125,9 +125,9 @@ int main()
 	fprintf( stderr, "Found %d total matches\n", m );
 	cvNamedWindow( "Matches", 1 );
 	cvShowImage( "Matches", stacked );
-	cvWaitKey( 0 );
+	cvWaitKey( 0 );*/
 
-	*/
+	
 
 
 

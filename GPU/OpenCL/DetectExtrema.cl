@@ -588,28 +588,27 @@ the feature descriptor.
 	distance from the center value of the bin measured in bin units.
 	*/
 
-	
+	//300
+
 	for( r = 0; r <= 1; r++ )
 	{
 		rb = r0 + r;
-
 		if( rb >= 0  &&  rb < d )
 		{
 			v_r = mag * ( ( r == 0 )? 1.0 - d_r : d_r );
-			
 			for( c = 0; c <= 1; c++ )
 			{
-
 				cb = c0 + c;
 				if( cb >= 0  &&  cb < d )
 				{
-
 					v_c = v_r * ( ( c == 0 )? 1.0 - d_c : d_c );
-					
+
 					for( o = 0; o <= 1; o++ )
 					{
 						ob = ( o0 + o ) % n;
+						//300
 						v_o = v_c * ( ( o == 0 )? 1.0 - d_o : d_o );
+						
 						hist[rb][cb][ob] += v_o;
 					}
 				}
@@ -627,14 +626,13 @@ descriptor.  Based on Section 6.1 of Lowe's paper.
 void descr_hist( __global float* gauss_pyr,  int pozX, int pozY, int ImageWidth, int ImageHeight, float ori, float scl, float hist[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS], int d, int n )
 {
 	
-	float cos_t, sin_t, hist_width, exp_denom, r_rot, c_rot, grad_mag,
-		grad_ori, w, rbin, cbin, obin, bins_per_rad, PI2 = 2.0 * CV_PI;
+	float cos_t, sin_t, newOri, hist_width, exp_denom, r_rot, c_rot, grad_mag,
+		grad_ori, w, rbin, cbin, obin, PI2 = 2.0 * CV_PI;
 	int radius, i, j;
 
 	
 	cos_t = cos( ori );
 	sin_t = sin( ori );
-	bins_per_rad = n / PI2;
 	exp_denom = d * d * 0.5;
 	hist_width = SIFT_DESCR_SCL_FCTR * scl;
 	radius = hist_width * sqrt(2.0) * ( d + 1.0 ) * 0.5 + 0.5;
@@ -644,27 +642,28 @@ void descr_hist( __global float* gauss_pyr,  int pozX, int pozY, int ImageWidth,
 	for( i = -radius; i <= radius; i++ )
 		for( j = -radius; j <= radius; j++ )
 		{
-			/*
-			Calculate sample's histogram array coords rotated relative to ori.
-			Subtract 0.5 so samples that fall e.g. in the center of row 1 (i.e.
-			r_rot = 1.5) have full weight placed in row 1 after interpolation.
-			*/
 			c_rot = ( j * cos_t - i * sin_t ) / hist_width;
 			r_rot = ( j * sin_t + i * cos_t ) / hist_width;
 			rbin = r_rot + d / 2 - 0.5;
 			cbin = c_rot + d / 2 - 0.5;
 
-			if( rbin > -1.0  &&  rbin < d  &&  cbin > -1.0  &&  cbin < d )
-				if( calc_grad_mag_ori( gauss_pyr, pozX + j, pozY + i, ImageWidth, ImageHeight, &grad_mag, &grad_ori ) )
-				{
-					grad_ori -= ori;
-					while( grad_ori < 0.0 )
-						grad_ori += PI2;
-					while( grad_ori >= PI2 )
-						grad_ori -= PI2;
+			//280
 
-					obin = grad_ori * bins_per_rad;
+			if( rbin > -1.0  &&  rbin < d  &&  cbin > -1.0  &&  cbin < d 
+				&& calc_grad_mag_ori( gauss_pyr, pozX + j, pozY + i, ImageWidth, ImageHeight, &grad_mag, &grad_ori ) )
+				{
+					//300
+					grad_ori -= ori;
+					newOri = ABS(grad_ori/PI2);
+					if( grad_ori < 0.0 )
+					{
+						newOri = PI2 - newOri*PI2;
+					} else {
+						newOri = (newOri - (int)newOri) * PI2;
+					}
+					obin = newOri * n / PI2;
 					w = exp( -(c_rot * c_rot + r_rot * r_rot) / exp_denom );
+					//300
 
 					interp_hist_entryGPU( hist, rbin, cbin, obin, grad_mag * w, d, n );
 				}
@@ -748,9 +747,7 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 						__global int* numberExtrema, __global float* keys,
 						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number)
  {
-
 	//__global float* gauss_pyr = &ucSource[Offset];
-
 	int numberExt = atomic_add(numberExtrema, (int)1);
 	int offset = 139;
 
@@ -758,18 +755,13 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 	int pozY = get_global_id(1);
 	int GMEMOffset = mul24(pozY, ImageWidth) + pozX;
 
-	
+	//
 
 	if( numberExt < *number)
 	{
-		//float	scx = keys[numberExt*offset];
-		//float	scy = keys[numberExt*offset + 1];
+		
 		float	x = keys[numberExt*offset + 2];
 		float	y = keys[numberExt*offset + 3];
-		//float	subintvl = keys[numberExt*offset + 4];
-		//float	intvlRes = keys[numberExt*offset + 5];
-		//float	octvRes = keys[numberExt*offset + 6];
-		//float	scl = keys[numberExt*offset + 7];  
 		float	scl_octv = keys[numberExt*offset + 8];
 		float	ori = keys[numberExt*offset + 9];
 
@@ -778,42 +770,54 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 
 		for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
 			hist[j] = 0;
+		
+		//235
 
 		ori_hist( ucSource, x, y, ImageWidth, ImageHeight, hist, SIFT_ORI_HIST_BINS, ROUND( SIFT_ORI_RADIUS * scl_octv ), SIFT_ORI_SIG_FCTR * scl_octv );
-
+		
+		//262
 
 		for(int j = 0; j < SIFT_ORI_SMOOTH_PASSES; j++ )
 			smooth_ori_hist( hist, SIFT_ORI_HIST_BINS );
+		
+		//264
+
 
 		int maxBin = 0;
-
 		float omax = dominant_ori( hist, SIFT_ORI_HIST_BINS, &maxBin );
 
+		//267
 
 		float orients[SIFT_ORI_HIST_BINS];
 		for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
 			orients[j] = 0;
 
-		int numberOrient = 0;
+		//267
 
+		int numberOrient = 0;
 		add_good_ori_features(hist, SIFT_ORI_HIST_BINS,	omax * SIFT_ORI_PEAK_RATIO, orients, &numberOrient);
 
+		//268
 
 		ori = orients[0];
 		keys[numberExt*offset + 9] = ori;  // -------------- orie
 
+		//268
 
 		float hist2[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS];
 
+		//270
 
 		for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
 			for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
 				for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
 					hist2[ii][iii][iiii] = 0.0;
 
+		//270
 
-		descr_hist( ucSource, keys[numberExt*offset + 2], keys[numberExt*offset + 3], ImageWidth, ImageHeight, keys[numberExt*offset + 9], keys[numberExt*offset + 8], hist2, SIFT_DESCR_WIDTH, SIFT_DESCR_HIST_BINS );
+		descr_hist( ucSource, x, y, ImageWidth, ImageHeight, ori, scl_octv, hist2, SIFT_DESCR_WIDTH, SIFT_DESCR_HIST_BINS );
 
+		//500
 
 		int k = 0;
 		float desc[128];
