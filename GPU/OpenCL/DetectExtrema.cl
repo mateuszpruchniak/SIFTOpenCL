@@ -7,10 +7,10 @@
 #define SIFT_SIGMA		1.6
 
 /** default threshold on keypoint contrast |D(x)| */
-#define SIFT_CONTR_THR	0.04
+#define SIFT_CONTR_THR	0.01
 
 /** default threshold on keypoint ratio of principle curvatures */
-#define SIFT_CURV_THR	10
+#define SIFT_CURV_THR	20
 
 /** float image size before pyramid construction? */
 #define SIFT_IMG_DBL	1
@@ -40,7 +40,7 @@
 #define SIFT_ORI_RADIUS 4.5
 
 /* number of passes of orientation histogram smoothing */
-#define SIFT_ORI_SMOOTH_PASSES 2
+#define SIFT_ORI_SMOOTH_PASSES 1
 
 /* orientation magnitude relative to max that results in new feature */
 #define SIFT_ORI_PEAK_RATIO 0.98
@@ -402,7 +402,7 @@ Lowe's paper.
 @return Returns 0 if the feature at (r,H[0][2]) in dog_img is sufficiently
 	corner-like or 1 otherwise.
 */
- int is_too_edge_like(__global float* dataIn2, int pozX, int pozY, int ImageWidth, int ImageHeight, int curv_thr )
+ int is_too_edge_like(__global float* dataIn2, int pozX, int pozY, int ImageWidth, int ImageHeight, float curv_thr )
 {
 	float d, dxx, dyy, dxy, tr, det;
 
@@ -419,7 +419,7 @@ Lowe's paper.
 	if( det <= 0 )
 		return 1;
 
-	if( tr * tr / det < ( curv_thr + 1.0 )*( curv_thr + 1.0 ) / curv_thr )
+	if( tr * tr / det < (float)( curv_thr + 1.0 )*( curv_thr + 1.0 ) / curv_thr )
 		return 0;
 	return 1;
 }
@@ -661,6 +661,7 @@ void descr_hist( __global float* gauss_pyr,  int pozX, int pozY, int ImageWidth,
 					} else {
 						newOri = (newOri - (int)newOri) * PI2;
 					}
+
 					obin = newOri * n / PI2;
 					w = exp( -(c_rot * c_rot + r_rot * r_rot) / exp_denom );
 					//300

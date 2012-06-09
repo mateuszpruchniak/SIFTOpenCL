@@ -83,7 +83,7 @@ bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int 
 	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufNumber, CL_TRUE, 0, sizeof(int), (void*)&numberExtr, 0, NULL, NULL);
 	CheckError(GPUError);
 
-	//cout << "Liczba punktow : " << numberExtr << endl;
+	cout << "Liczba punktow : " << numberExtr << endl;
 
 	/* -------------------------------------------------------------------------------------------------------------------------- */
 

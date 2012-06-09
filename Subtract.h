@@ -15,7 +15,7 @@ public:
 
 	bool ReceiveImageToBufPyramid( IplImage* img, int offset);
 
-	bool Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetAct, int OffsetNext);
+	bool Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetPrev, int OffsetAct);
 
 	bool SendImageToBufPyramid( IplImage* img, int offset);
 

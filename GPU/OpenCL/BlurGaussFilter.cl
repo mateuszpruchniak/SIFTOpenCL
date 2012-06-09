@@ -28,7 +28,7 @@ __kernel void ckConv(__global float* ucSource, int Offset, int OffsetNext,
 		{
 			for(int ii = -r ; ii <= r; ii++ ) //x
 			{
-				G = exp((float)((-1.0) * (float)(ii * ii + j * j) / (2.0 * sigma * sigma) ));
+				G = exp((float)((-1.0) * (float)((float)ii * (float)ii + (float)j * (float)j) / (2.0 * sigma * sigma) ));
 				sumG += G;
 				int x = pozX + ii >= 0 && pozX + ii <= ImageWidth  ? pozX + ii : 0;
 				int y = pozY + j >= 0 && pozY + j <= ImageHeight ? pozY + j : 0;

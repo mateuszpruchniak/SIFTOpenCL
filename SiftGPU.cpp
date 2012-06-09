@@ -184,6 +184,9 @@ based on contrast and ratio of principal curvatures.
 			if( i > 0 && i <= intvls )
 			{
 				num = 0;
+
+				
+
 				detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, prelim_contr_thr, i, o, keysArray);
 					
 				total = features->total;
@@ -661,7 +664,7 @@ Builds Gaussian scale space pyramid from an image
 
 	int offset = 0;
 
-	for( o = 0; o < octvs; o++ )
+	/*for( o = 0; o < octvs; o++ )
 	{
 		for( i = 0; i < intvlsSum; i++ )
 		{
@@ -671,12 +674,11 @@ Builds Gaussian scale space pyramid from an image
 			} else if(i == 0)
 			{
 				imgArray[o] = Downsample( imgArray[o-1] );
-
 				meanFilter->SendImageToBufPyramid(imgArray[o], offset);
 			}
 			offset += sizeOfImages[o];
 		}
-	}
+	}*/
 
 	offset = 0;
 	int OffsetAct = 0;
@@ -686,7 +688,20 @@ Builds Gaussian scale space pyramid from an image
 	{
 		for( i = 0; i < intvlsSum; i++ )
 		{
-			if(i > 0)
+
+			if( o == 0  &&  i == 0 )
+			{
+				meanFilter->SendImageToBufPyramid(imgArray[o], OffsetAct);
+			} else if(i == 0)
+			{
+				meanFilter->ReceiveImageToBufPyramid(imgArray[o-1], OffsetPrev);
+				imgArray[o] = Downsample( imgArray[o-1] );
+				meanFilter->SendImageToBufPyramid(imgArray[o], OffsetAct);
+			}
+
+
+
+			if(i > 0 )
 			{
 				meanFilter->Process( sig[i], imgArray[o]->width, imgArray[o]->height, OffsetPrev, OffsetAct);
 				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct);
@@ -696,18 +711,20 @@ Builds Gaussian scale space pyramid from an image
 		}
 	}
 
-	/*OffsetPrev = 0;
-	for( o = 0; o < octvs; o++ )
-	{
-		for( i = 0; i < intvlsSum; i++ )
-		{
-			meanFilter->ReceiveImageToBufPyramid(imgArray[o], OffsetPrev);
-			cvNamedWindow( "sub", 1 );
-			cvShowImage( "sub", imgArray[o] );
-			cvWaitKey( 0 );
-			OffsetPrev += sizeOfImages[o];
-		}
-	}*/
+
+
+	//OffsetPrev = 0;
+	//for( o = 0; o < octvs; o++ )
+	//{
+	//	for( i = 0; i < intvlsSum; i++ )
+	//	{
+	//		subtract->ReceiveImageToBufPyramid(imgArray[o], OffsetPrev);
+	//		cvNamedWindow( "sub", 1 );
+	//		cvShowImage( "sub", imgArray[o] );
+	//		cvWaitKey( 0 );
+	//		OffsetPrev += sizeOfImages[o];
+	//	}
+	//}
 	
 	free( sig );	
 	return true;
