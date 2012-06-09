@@ -749,7 +749,7 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number)
  {
 
-	 __global float* gauss_pyr = &ucSource[Offset];
+	//__global float* gauss_pyr = &ucSource[Offset];
 
 	int numberExt = atomic_add(numberExtrema, (int)1);
 	int offset = 139;
@@ -758,17 +758,18 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 	int pozY = get_global_id(1);
 	int GMEMOffset = mul24(pozY, ImageWidth) + pozX;
 
+	
 
 	if( numberExt < *number)
 	{
-		float	scx = keys[numberExt*offset];
-		float	scy = keys[numberExt*offset + 1];
+		//float	scx = keys[numberExt*offset];
+		//float	scy = keys[numberExt*offset + 1];
 		float	x = keys[numberExt*offset + 2];
 		float	y = keys[numberExt*offset + 3];
-		float	subintvl = keys[numberExt*offset + 4];
-		float	intvlRes = keys[numberExt*offset + 5];
-		float	octvRes = keys[numberExt*offset + 6];
-		float	scl = keys[numberExt*offset + 7];  
+		//float	subintvl = keys[numberExt*offset + 4];
+		//float	intvlRes = keys[numberExt*offset + 5];
+		//float	octvRes = keys[numberExt*offset + 6];
+		//float	scl = keys[numberExt*offset + 7];  
 		float	scl_octv = keys[numberExt*offset + 8];
 		float	ori = keys[numberExt*offset + 9];
 
@@ -778,69 +779,72 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 		for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
 			hist[j] = 0;
 
-		ori_hist( gauss_pyr, x, y, ImageWidth, ImageHeight, hist, SIFT_ORI_HIST_BINS, ROUND( SIFT_ORI_RADIUS * scl_octv ), SIFT_ORI_SIG_FCTR * scl_octv );
+		ori_hist( ucSource, x, y, ImageWidth, ImageHeight, hist, SIFT_ORI_HIST_BINS, ROUND( SIFT_ORI_RADIUS * scl_octv ), SIFT_ORI_SIG_FCTR * scl_octv );
 
 
-		//for(int j = 0; j < SIFT_ORI_SMOOTH_PASSES; j++ )
-		//	smooth_ori_hist( hist, SIFT_ORI_HIST_BINS );
+		for(int j = 0; j < SIFT_ORI_SMOOTH_PASSES; j++ )
+			smooth_ori_hist( hist, SIFT_ORI_HIST_BINS );
 
-		//int maxBin = 0;
+		int maxBin = 0;
 
-		//float omax = dominant_ori( hist, SIFT_ORI_HIST_BINS, &maxBin );
-
-
-		//float orients[SIFT_ORI_HIST_BINS];
-		//for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
-		//	orients[j] = 0;
-
-		//int numberOrient = 0;
-
-		//add_good_ori_features(hist, SIFT_ORI_HIST_BINS,	omax * SIFT_ORI_PEAK_RATIO, orients, &numberOrient);
+		float omax = dominant_ori( hist, SIFT_ORI_HIST_BINS, &maxBin );
 
 
-		//ori = orients[0];
-		//keys[numberExt*offset + 9] = ori;  // -------------- orie
+		float orients[SIFT_ORI_HIST_BINS];
+		for(int j = 0; j < SIFT_ORI_HIST_BINS; j++ )
+			orients[j] = 0;
+
+		int numberOrient = 0;
+
+		add_good_ori_features(hist, SIFT_ORI_HIST_BINS,	omax * SIFT_ORI_PEAK_RATIO, orients, &numberOrient);
 
 
-		//float hist2[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS];
+		ori = orients[0];
+		keys[numberExt*offset + 9] = ori;  // -------------- orie
 
 
-		//for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
-		//	for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
-		//		for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
-		//			hist2[ii][iii][iiii] = 0.0;
+		float hist2[SIFT_DESCR_WIDTH][SIFT_DESCR_WIDTH][SIFT_DESCR_HIST_BINS];
 
 
-		//descr_hist( gauss_pyr, keys[numberExt*offset + 2], keys[numberExt*offset + 3], ImageWidth, ImageHeight, keys[numberExt*offset + 9], keys[numberExt*offset + 8], hist2, SIFT_DESCR_WIDTH, SIFT_DESCR_HIST_BINS );
+		for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
+			for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
+				for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
+					hist2[ii][iii][iiii] = 0.0;
 
 
-		//int k = 0;
-		//float desc[128];
-
-		//for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
-		//	for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
-		//		for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
-		//			desc[k++] = hist2[ii][iii][iiii];
-
-		//normalize_descr( desc );
+		descr_hist( ucSource, keys[numberExt*offset + 2], keys[numberExt*offset + 3], ImageWidth, ImageHeight, keys[numberExt*offset + 9], keys[numberExt*offset + 8], hist2, SIFT_DESCR_WIDTH, SIFT_DESCR_HIST_BINS );
 
 
-		//for(int i = 0; i < k; i++ )
-		//{
-		//	if( desc[i] > SIFT_DESCR_MAG_THR )
-		//		desc[i] = SIFT_DESCR_MAG_THR;
-		//}
+		int k = 0;
+		float desc[128];
 
-		//normalize_descr( desc );
+		for(int ii = 0; ii < SIFT_DESCR_WIDTH; ii++)
+			for(int iii = 0; iii < SIFT_DESCR_WIDTH; iii++)
+				for(int iiii = 0; iiii < SIFT_DESCR_HIST_BINS; iiii++)
+					desc[k++] = hist2[ii][iii][iiii];
 
-		//// convert floating-point descriptor to integer valued descriptor */
-		//for(int i = 0; i < k; i++ )
-		//{
-		//	desc[i] = min( 255, (int)(SIFT_INT_DESCR_FCTR * desc[i]) );
-		//}
+		normalize_descr( desc );
 
-		//for(int i = 0; i < k; i++ )
-		//	keys[numberExt*offset + 11 + i] = desc[i];
+
+		for(int i = 0; i < k; i++ )
+		{
+			if( desc[i] > SIFT_DESCR_MAG_THR )
+				desc[i] = SIFT_DESCR_MAG_THR;
+		}
+
+		normalize_descr( desc );
+
+		// convert floating-point descriptor to integer valued descriptor */
+		for(int i = 0; i < k; i++ )
+		{
+			desc[i] = min( 255, (int)(SIFT_INT_DESCR_FCTR * desc[i]) );
+		}
+
+		for(int i = 0; i < k; i++ )
+			keys[numberExt*offset + 11 + i] = desc[i];
 
 	}
+
+
+
  }

@@ -31,7 +31,7 @@ double RecvTime = 0;
 int main()
 {
 	char* img1_file = "c:\\opel.jpg";
-	char* img2_file = "c:\\scene.jpg";
+	char* img2_file = "c:\\opel2.jpg";
 	IplImage* img1, * img2, *stacked;
 	char* img_file_name = "c:\\scene2.jpg";
 	char* out_file_name  = "c:\\h1.sift";;
@@ -99,7 +99,7 @@ int main()
 
 
 
-	/*kd_root = kdtree_build( features2, n2 );
+	/* kd_root = kdtree_build( features2, n2 );
 
 	for(i = 0; i < n1; i++ )
 	{
@@ -125,9 +125,9 @@ int main()
 	fprintf( stderr, "Found %d total matches\n", m );
 	cvNamedWindow( "Matches", 1 );
 	cvShowImage( "Matches", stacked );
-	cvWaitKey( 0 );*/
+	cvWaitKey( 0 );
 
-
+	*/
 
 
 

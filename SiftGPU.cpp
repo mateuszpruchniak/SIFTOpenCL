@@ -74,9 +74,17 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 	BuildGaussPyramid( init_img, octvs, intvls, sigma );
 	storage = cvCreateMemStorage( 0 );
 	
-	features = ScaleSpaceExtrema(octvs, intvls, contr_thr, curv_thr, storage );
 
-	/* sort features by decreasing scale and move from CvSeq to array */
+	clock_t start, finish;
+	double duration = 0;
+	start = clock();
+		features = ScaleSpaceExtrema(octvs, intvls, contr_thr, curv_thr, storage );
+	finish = clock();
+	duration = (double)(finish - start) / CLOCKS_PER_SEC;
+	cout << endl;
+	cout << "ScaleSpaceExtrema " << SIFTCPU << ": " << duration << endl;
+	cout << endl;
+	
 	cvSeqSort( features, (CvCmpFunc)FeatureCmp, NULL );
 	total = n = features->total;
 	feat = (feature*)calloc( n, sizeof(feature) );
@@ -164,23 +172,24 @@ based on contrast and ratio of principal curvatures.
 		keysArray[j].ori = 0.0;
 	}*/
 
+
+	detectExt->CreateBuffer(sizeOfImages[0]);
+
 	for( o = 0; o < octvs; o++ )
 	{
 		for( i = 0; i < intvlsSum; i++ )
 		{
 			OffsetNext += sizeOfImages[o];
 				
-			if( i > 0 )
+			if( i > 0 && i <= intvls )
 			{
 				num = 0;
-				
 				detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, prelim_contr_thr, i, o, keysArray);
 					
 				total = features->total;
 				number = num;
 
 				struct detection_data* ddata;
-
 
 				for(int ik = 0; ik < number ; ik++)
 				{ 
@@ -197,17 +206,13 @@ based on contrast and ratio of principal curvatures.
 					ddata->scl_octv = keysArray[ik].scl_octv;
 					feat->ori = (double)keysArray[ik].ori;
 					feat->d = 128;
-
 					for(int i = 0; i < 128 ; i++ )
 					{
 						feat->descr[i] = keysArray[ik].desc[i];
 					}
-
 					cvSeqPush( features, feat );
 					free( feat );
 				}
-
-
 			}
 
 			OffsetPrev = OffsetAct;

@@ -31,7 +31,12 @@ DetectExtrema::DetectExtrema(int _maxNumberKeys): GPUBase("C:\\Users\\Mati\\Desk
 }
 
 
-
+bool DetectExtrema::CreateBuffer(float size)
+{
+	buffGaussImg = clCreateBuffer(GPUContext, CL_MEM_READ_WRITE, size, NULL, &GPUError);
+	CheckError(GPUError);
+	return true;
+}
 
 
 bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetPrev , int OffsetAct, int OffsetNext, int* numExtr, float prelim_contr_thr, int intvl, int octv, Keys* keys)
@@ -75,22 +80,28 @@ bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int 
 		return false;
 	}
 
-
-	
-
 	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufNumber, CL_TRUE, 0, sizeof(int), (void*)&numberExtr, 0, NULL, NULL);
 	CheckError(GPUError);
 
+	cout << "Liczba punktow : " << numberExtr << endl;
+
+	/* -------------------------------------------------------------------------------------------------------------------------- */
+
+
+	clEnqueueCopyBuffer(GPUCommandQueue, gaussPyr, buffGaussImg, OffsetPrev*4, 0, imageWidth*imageHeight*4, 0, NULL, NULL);
+	
 	GPUError = clEnqueueWriteBuffer(GPUCommandQueue, cmDevBufCount, CL_TRUE, 0, sizeof(int), (void*)&counter, 0, NULL, NULL);
 	CheckError(GPUError);
 
+	float sqrtNuber = sqrt((float)numberExtr);
+
 	GPULocalWorkSize[0] = iBlockDimX;
 	GPULocalWorkSize[1] = iBlockDimY;
-	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)(*numExtr));
-	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)1);
+	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)(sqrtNuber+1));
+	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)sqrtNuber);
 
 	iLocalPixPitch = iBlockDimX + 2;
-	GPUError = clSetKernelArg(GPUKernelDesc, 0, sizeof(cl_mem), (void*)&gaussPyr);
+	GPUError = clSetKernelArg(GPUKernelDesc, 0, sizeof(cl_mem), (void*)&buffGaussImg);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 1, sizeof(cl_uint), (void*)&OffsetPrev);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 2, sizeof(cl_mem), (void*)&cmDevBufCount);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 3, sizeof(cl_mem), (void*)&cmDevBufKeys);

@@ -14,6 +14,7 @@
 #include "highgui.h"
 #include <stdarg.h>
 #include "Shared.h"
+#include <math.h>
 
 using namespace std;
 
