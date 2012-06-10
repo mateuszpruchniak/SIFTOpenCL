@@ -193,6 +193,7 @@
     <ClCompile Include="kdtree.cpp" />
     <ClCompile Include="MeanFilter.cpp" />
     <ClCompile Include="minpq.cpp" />
+    <ClCompile Include="PyramidProcess.cpp" />
     <ClCompile Include="SiftGPU.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="main.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="KeyPoint.h" />
     <ClInclude Include="MeanFilter.h" />
     <ClInclude Include="minpq.h" />
+    <ClInclude Include="PyramidProcess.h" />
     <ClInclude Include="Shared.h" />
     <ClInclude Include="SiftGPU.h" />
     <ClInclude Include="stdafx.h" />

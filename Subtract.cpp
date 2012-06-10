@@ -4,7 +4,7 @@
 
 
 
-Subtract::Subtract(): GPUBase("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\Subtract.cl","ckSub")
+Subtract::Subtract(): PyramidProcess("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\Subtract.cl","ckSub")
 {
 
 }
@@ -14,12 +14,6 @@ Subtract::~Subtract(void)
 {
 }
 
-bool Subtract::CreateBuffer( float size )
-{
-	cmBufPyramid = clCreateBuffer(GPUContext, CL_MEM_READ_WRITE, size, NULL, &GPUError);
-	CheckError(GPUError);
-	return true;
-}
 
 bool Subtract::Process()
 {
@@ -66,33 +60,5 @@ bool Subtract::Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int Off
 	if(GPUError) return false;
 
 	if(clEnqueueNDRangeKernel( GPUCommandQueue, GPUKernel, 2, NULL, GPUGlobalWorkSize, GPULocalWorkSize, 0, NULL, NULL)) return false;
-	return true;
-}
-
-bool Subtract::ReceiveImageToBufPyramid( IplImage* img, int offset)
-{
-	clock_t start, finish;
-	double duration = 0;
-	start = clock();
-	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmBufPyramid, CL_TRUE, offset, img->imageSize, (void*)img->imageData, 0, NULL, NULL);
-	CheckError(GPUError);
-	finish = clock();
-	duration = (double)(finish - start) / CLOCKS_PER_SEC;
-	RecvTime += duration;
-
-	return true;
-}
-
-bool Subtract::SendImageToBufPyramid( IplImage* img, int offset)
-{
-	clock_t start, finish;
-	double duration = 0;
-	start = clock();
-	GPUError = clEnqueueWriteBuffer(GPUCommandQueue, cmBufPyramid, CL_TRUE, offset, img->imageSize, (void*)img->imageData, 0, NULL, NULL);
-	CheckError(GPUError);
-	finish = clock();
-	duration = (double)(finish - start) / CLOCKS_PER_SEC;
-	SendTime += duration;
-
 	return true;
 }

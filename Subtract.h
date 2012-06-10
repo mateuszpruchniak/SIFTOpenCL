@@ -1,23 +1,15 @@
 
 #pragma once
 
-#include "GPUBase.h"
+#include "PyramidProcess.h"
 
 
 class Subtract :
-	public GPUBase
+	public PyramidProcess
 {
 public:
 
-	cl_mem cmBufPyramid;
-
-	bool CreateBuffer( float size );
-
-	bool ReceiveImageToBufPyramid( IplImage* img, int offset);
-
 	bool Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetPrev, int OffsetAct);
-
-	bool SendImageToBufPyramid( IplImage* img, int offset);
 
 	/*!
 	* Destructor.

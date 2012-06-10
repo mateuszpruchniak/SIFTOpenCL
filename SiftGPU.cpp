@@ -656,8 +656,8 @@ Builds Gaussian scale space pyramid from an image
 	sizeOfPyramid = SumOfPyramid;
 	
 	
-	meanFilter->CreateBuffer(SumOfPyramid);
-	subtract->CreateBuffer(SumOfPyramid);
+	meanFilter->CreateBufferForPyramid(SumOfPyramid);
+	subtract->CreateBufferForPyramid(SumOfPyramid);
 
 	cmBufPyramidGauss = meanFilter->cmBufPyramid;
 	cmBufPyramidDOG = subtract->cmBufPyramid;
@@ -691,12 +691,12 @@ Builds Gaussian scale space pyramid from an image
 
 			if( o == 0  &&  i == 0 )
 			{
-				meanFilter->SendImageToBufPyramid(imgArray[o], OffsetAct);
+				meanFilter->SendImageToPyramid(imgArray[o], OffsetAct);
 			} else if(i == 0)
 			{
-				meanFilter->ReceiveImageToBufPyramid(imgArray[o-1], OffsetPrev);
+				meanFilter->ReceiveImageFromPyramid(imgArray[o-1], OffsetPrev);
 				imgArray[o] = Downsample( imgArray[o-1] );
-				meanFilter->SendImageToBufPyramid(imgArray[o], OffsetAct);
+				meanFilter->SendImageToPyramid(imgArray[o], OffsetAct);
 			}
 
 
