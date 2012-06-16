@@ -58,8 +58,10 @@ int main()
 
 
 
-	SiftGPU* siftOpenCL = new SiftGPU();
-	SiftGPU* siftOpenCL2 = new SiftGPU();
+	SiftGPU* siftOpenCL = new SiftGPU(SIFT_INTVLS, SIFT_SIGMA, SIFT_CONTR_THR,SIFT_CURV_THR,SIFT_DESCR_WIDTH,SIFT_DESCR_HIST_BINS,SIFT_IMG_DBL);
+
+
+	//SiftGPU* siftOpenCL2 = new SiftGPU();
 
 	fprintf( stderr, "Finding SIFT features...\n" );
 
