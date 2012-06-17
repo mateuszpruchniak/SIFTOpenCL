@@ -75,7 +75,7 @@ int FeatureCmp( void* feat1, void* feat2, void* param )
 	clock_t start, finish;
 	double duration = 0;
 	start = clock();
-		features = ScaleSpaceExtrema();
+		features = DetectAndGenerateDesc();
 	finish = clock();
 	duration = (double)(finish - start) / CLOCKS_PER_SEC;
 	cout << endl;
@@ -250,15 +250,9 @@ Builds Gaussian scale space pyramid from an image
 	 return smaller;
  }
 
- 
- /*
-Detects features at extrema in DoG scale space.  Bad features are discarded
-based on contrast and ratio of principal curvatures.
 
-@return Returns an array of detected features whose scales, orientations,
-	and descriptors are yet to be determined.
-*/
- CvSeq* SiftGPU::ScaleSpaceExtrema()
+
+ CvSeq* SiftGPU::DetectAndGenerateDesc()
 {
 	float prelim_contr_thr = 0.5 * contr_thr / intvls;
 	struct detection_data* ddata;

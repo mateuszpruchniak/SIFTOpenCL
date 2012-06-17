@@ -99,9 +99,6 @@ class SiftGPU
 {
 private:
 
-	//char* img_file_name;
-	//char* out_file_name;
-	//char* out_img_name;
 	int intvls;
 	float sigma;
 	float contr_thr;
@@ -132,28 +129,15 @@ private:
 	
 	bool BuildGaussPyramid(IplImage* base);
 	IplImage* Downsample( IplImage* img );
-	CvSeq* ScaleSpaceExtrema();
+	CvSeq* DetectAndGenerateDesc();
 	feature* NewFeature( void );
 
-
-
-	//float InterpContr( IplImage*** dog_pyr, int octv, int intvl, int r, int c, float xi, float xr, float xc );
-	//void Hessian3D( IplImage*** dog_pyr, int octv, int intvl, int r, int c, float H[][3] );
-	//CvMat* Deriv3D( IplImage*** dog_pyr, int octv, int intvl, int r, int c );
-	//void InterpStep( IplImage*** dog_pyr, int octv, int intvl, int rr, int cc, float* xi, float* xr, float* xc );
-	//feature* InterpExtremum( IplImage*** dog_pyr, int octv, int intvl, int r, int c, int intvls, float contr_thr );
-	//int IsExtremum( IplImage*** dog_pyr, int octv, int intvl, int r, int c );
-	//int IsTooEdgeLike( IplImage* dog_img, int r, int c, int curv_thr );
-	////int FeatureCmp( void* feat1, void* feat2, void* param );
-	//void ReleasePyr( IplImage**** pyr, int octvs, int n );
 
 public:
 
 	feature* feat;
 	SiftGPU(int _intvls, float _sigma, float _contr_thr, int _curv_thr, int _descr_width, int _descr_hist_bins, int _img_dbl);
 	int DoSift(IplImage* img);
-
-
 
 };
 
