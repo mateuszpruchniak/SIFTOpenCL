@@ -210,7 +210,7 @@
     </CustomBuildStep>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram1.cd" />
+    <None Include="ClassDiagram2.cd" />
     <None Include="CL\SIFT.cl" />
     <None Include="GPU\OpenCL\BlurGaussFilter.cl" />
     <None Include="GPU\OpenCL\DetectExtrema.cl" />

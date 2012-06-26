@@ -7,57 +7,44 @@ DetectExtrema::~DetectExtrema(void)
 {
 }
 
-DetectExtrema::DetectExtrema(int _maxNumberKeys): GPUBase("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\DetectExtrema.cl","ckDetect")
+DetectExtrema::DetectExtrema(int _maxNumberKeys): GPUBase( DETECT_EXTREMA_OPENCL_SOURCE, DETECT_EXTREMA_OPENCL_KERNEL)
 {
-	counter = 0;
+	int counter = 0;
 	maxNumberKeys = _maxNumberKeys;
-	counter = 0;
 
 	cmDevBufNumber = clCreateBuffer(GPUContext, CL_MEM_READ_WRITE, sizeof(int), NULL, &GPUError);
 	CheckError(GPUError);
-
 
 	cmDevBufCount = clCreateBuffer(GPUContext, CL_MEM_READ_WRITE, sizeof(int), NULL, &GPUError);
 	CheckError(GPUError);
 	GPUError = clEnqueueWriteBuffer(GPUCommandQueue, cmDevBufCount, CL_TRUE, 0, sizeof(int), (void*)&counter, 0, NULL, NULL);
 	CheckError(GPUError);
 
-	
 	cmDevBufKeys = clCreateBuffer(GPUContext, CL_MEM_READ_WRITE, maxNumberKeys*sizeof(Keys), NULL, &GPUError);
 	CheckError(GPUError);
 
-	GPUKernelDesc = clCreateKernel(GPUProgram, "ckDesc", &GPUError);
+	GPUKernelDesc = clCreateKernel(GPUProgram, DESC_EXTREMA_OPENCL_KERNEL, &GPUError);
 	CheckError(GPUError);
-}
-
-
-bool DetectExtrema::CreateBuffer(float size)
-{
-	buffGaussImg = clCreateBuffer(GPUContext, CL_MEM_READ_WRITE, size, NULL, &GPUError);
-	CheckError(GPUError);
-	return true;
 }
 
 
 bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetPrev , int OffsetAct, int OffsetNext, int* numExtr, float prelim_contr_thr, int intvl, int octv, Keys* keys)
 {
-	counter = 0;
+	int counter = 0;
 	int numberExtr = 0;
 
 	OffsetAct = OffsetAct / 4;
 	OffsetPrev = OffsetPrev / 4;
 	OffsetNext = OffsetNext / 4;
 	
-	//GPUError = clEnqueueWriteBuffer(GPUCommandQueue, cmDevBufKeys, CL_TRUE, 0, maxNumberKeys*sizeof(Keys), (void*)keys, 0, NULL, NULL);
-	//CheckError(GPUError);
 	GPUError = clEnqueueWriteBuffer(GPUCommandQueue, cmDevBufNumber, CL_TRUE, 0, sizeof(int), (void*)&numberExtr, 0, NULL, NULL);
 	CheckError(GPUError);
 
 	size_t GPULocalWorkSize[2];
 	GPULocalWorkSize[0] = iBlockDimX;
 	GPULocalWorkSize[1] = iBlockDimY;
-	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)imageWidth);
-	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)imageHeight);
+	GPUGlobalWorkSize[0] = RoundUpGroupDim((int)GPULocalWorkSize[0], (int)imageWidth);
+	GPUGlobalWorkSize[1] = RoundUpGroupDim((int)GPULocalWorkSize[1], (int)imageHeight);
 
 	int iLocalPixPitch = iBlockDimX + 2;
 	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&dogPyr);
@@ -83,13 +70,6 @@ bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int 
 	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufNumber, CL_TRUE, 0, sizeof(int), (void*)&numberExtr, 0, NULL, NULL);
 	CheckError(GPUError);
 
-	cout << "Liczba punktow : " << numberExtr << endl;
-
-	/* -------------------------------------------------------------------------------------------------------------------------- */
-
-
-	clEnqueueCopyBuffer(GPUCommandQueue, gaussPyr, buffGaussImg, OffsetPrev*4, 0, imageWidth*imageHeight*4, 0, NULL, NULL);
-	
 	GPUError = clEnqueueWriteBuffer(GPUCommandQueue, cmDevBufCount, CL_TRUE, 0, sizeof(int), (void*)&counter, 0, NULL, NULL);
 	CheckError(GPUError);
 
@@ -97,11 +77,11 @@ bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int 
 
 	GPULocalWorkSize[0] = iBlockDimX;
 	GPULocalWorkSize[1] = iBlockDimY;
-	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)(sqrtNuber+1));
-	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)sqrtNuber);
+	GPUGlobalWorkSize[0] = RoundUpGroupDim((int)GPULocalWorkSize[0], (int)(sqrtNuber+1));
+	GPUGlobalWorkSize[1] = RoundUpGroupDim((int)GPULocalWorkSize[1], (int)sqrtNuber);
 
 	iLocalPixPitch = iBlockDimX + 2;
-	GPUError = clSetKernelArg(GPUKernelDesc, 0, sizeof(cl_mem), (void*)&buffGaussImg);
+	GPUError = clSetKernelArg(GPUKernelDesc, 0, sizeof(cl_mem), (void*)&gaussPyr);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 1, sizeof(cl_uint), (void*)&OffsetPrev);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 2, sizeof(cl_mem), (void*)&cmDevBufCount);
 	GPUError |= clSetKernelArg(GPUKernelDesc, 3, sizeof(cl_mem), (void*)&cmDevBufKeys);
@@ -118,7 +98,6 @@ bool DetectExtrema::Process(cl_mem dogPyr, cl_mem gaussPyr, int imageWidth, int 
 		cout << "Error clEnqueueNDRangeKernel" << endl;
 		return false;
 	}
-	
 	
 	GPUError = clEnqueueReadBuffer(GPUCommandQueue, cmDevBufCount, CL_TRUE, 0, sizeof(int), (void*)&counter, 0, NULL, NULL);
 	CheckError(GPUError);

@@ -21,9 +21,9 @@ GPUBase::GPUBase(char* source, char* KernelName)
 	GPUCommandQueue = GPU::getInstance().GPUCommandQueue;
 	
     	// Load OpenCL kernel
-	SourceOpenCLShared = oclLoadProgSource("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\GPUCode.cl", "// My comment\n", &szKernelLength);
+	SourceOpenCLShared = LoadProgramSource("C:\\Users\\Mati\\Desktop\\Dropbox\\MGR\\SIFTOpenCL\\GPU\\OpenCL\\GPUCode.cl", "// My comment\n", &szKernelLength);
 
-	SourceOpenCL = oclLoadProgSource(source, "// My comment\n", &szKernelLengthFilter);
+	SourceOpenCL = LoadProgramSource(source, "// My comment\n", &szKernelLengthFilter);
 	
 	szKernelLengthSum = szKernelLength + szKernelLengthFilter + 100;
 	char* sourceCL = new char[szKernelLengthSum];
@@ -49,11 +49,6 @@ GPUBase::GPUBase(char* source, char* KernelName)
 
 }
 
-GPUBase::GPUBase()
-{
-	iBlockDimX = 16;
-	iBlockDimY = 16;
-}
 
 bool GPUBase::CreateBuffersIn(int maxBufferSize, int numbOfBuffers)
 {
@@ -187,7 +182,7 @@ bool GPUBase::SendImageToBuffers(int number, ... )
 }
 
 
-bool GPUBase::ReceiveImageData(int number, ... )
+bool GPUBase::ReceiveImageFromBuffers(int number, ... )
 {
 	if(GPU::getInstance().buffersListOut == NULL)
 		return false;
@@ -217,7 +212,7 @@ bool GPUBase::ReceiveImageData(int number, ... )
 }
 
 
-size_t GPUBase::shrRoundUp(int group_size, int global_size)
+size_t GPUBase::RoundUpGroupDim(int group_size, int global_size)
 {
 	if(global_size < 80)
 		global_size = 80;
@@ -231,7 +226,7 @@ size_t GPUBase::shrRoundUp(int group_size, int global_size)
 	}
 }
 
-char* GPUBase::oclLoadProgSource(const char* cFilename, const char* cPreamble, size_t* szFinalLength)
+char* GPUBase::LoadProgramSource(const char* cFilename, const char* cPreamble, size_t* szFinalLength)
 {
 	// locals
 	FILE* pFileStream = NULL;

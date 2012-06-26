@@ -748,7 +748,7 @@ __kernel void ckDesc( __global float* ucSource, int Offset,
 						__global int* numberExtrema, __global float* keys,
 						int ImageWidth, int ImageHeight, float prelim_contr_thr, int intvl, int octv, __global int* number)
  {
-	//__global float* gauss_pyr = &ucSource[Offset];
+	ucSource = &ucSource[Offset];
 	int numberExt = atomic_add(numberExtrema, (int)1);
 	int offset = 139;
 

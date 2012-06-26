@@ -282,7 +282,6 @@ Builds Gaussian scale space pyramid from an image
 		keysArray[j].ori = 0.0;
 	}*/
 
-	detectExt->CreateBuffer(sizeOfImages[0]);
 
 	for( o = 0; o < octvs; o++ )
 	{

@@ -26,8 +26,8 @@ bool MeanFilter::Process(float sigma, int imageWidth, int imageHeight, int Offse
 	size_t GPULocalWorkSize[2];
 	GPULocalWorkSize[0] = iBlockDimX;
 	GPULocalWorkSize[1] = iBlockDimY;
-	GPUGlobalWorkSize[0] = shrRoundUp((int)GPULocalWorkSize[0], (int)imageWidth);
-	GPUGlobalWorkSize[1] = shrRoundUp((int)GPULocalWorkSize[1], (int)imageHeight);
+	GPUGlobalWorkSize[0] = RoundUpGroupDim((int)GPULocalWorkSize[0], (int)imageWidth);
+	GPUGlobalWorkSize[1] = RoundUpGroupDim((int)GPULocalWorkSize[1], (int)imageHeight);
 	
 	int iLocalPixPitch = iBlockDimX + 2;
 	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&cmBufPyramid);

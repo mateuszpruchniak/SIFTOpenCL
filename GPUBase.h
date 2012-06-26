@@ -191,9 +191,6 @@ class GPUBase
 
 	char* kernelFuncName;
 	
-
-	GPUBase();
-
 	~GPUBase();
 
 	GPUBase(char* source, char* KernelName);
@@ -204,11 +201,11 @@ class GPUBase
 
 	bool SendImageToBuffers(int number, ... );
 
-	bool ReceiveImageData(int number, ... );
+	bool ReceiveImageFromBuffers(int number, ... );
 
-	size_t shrRoundUp(int group_size, int global_size);
+	size_t RoundUpGroupDim(int group_size, int global_size);
 
-	char* oclLoadProgSource(const char* cFilename, const char* cPreamble, size_t* szFinalLength);
+	char* LoadProgramSource(const char* cFilename, const char* cPreamble, size_t* szFinalLength);
 
 	int GetKernelSize(double sigma, double cut_off=0.001);
 };
