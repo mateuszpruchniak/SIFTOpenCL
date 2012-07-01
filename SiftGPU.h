@@ -4,7 +4,7 @@
 
 
 
-#include "MeanFilter.h"
+#include "GaussFilter.h"
 #include "Subtract.h"
 #include "DetectExtrema.h"
 #include "cxcore.h"
@@ -106,7 +106,7 @@ private:
 	int img_dbl;
 	int descr_width;
 	int descr_hist_bins;
-	MeanFilter* meanFilter;
+	GaussFilter* gaussFilter;
 	Subtract* subtract;
 	DetectExtrema* detectExt;
 	float* sig;

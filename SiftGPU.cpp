@@ -27,7 +27,7 @@
 	 descr_hist_bins = SIFT_DESCR_HIST_BINS;*/
 	 
 	 sig = (float*)calloc( intvls + 3, sizeof(float));
-	 meanFilter = new MeanFilter();
+	 gaussFilter = new GaussFilter();
 	 subtract = new Subtract();
 	 detectExt = new DetectExtrema(SIFT_MAX_NUMBER_KEYS);
  }
@@ -152,11 +152,11 @@ Builds Gaussian scale space pyramid from an image
 		imageWidth[o] = imgArray[o]->width;
 	}
 
-	meanFilter->CreateBufferForPyramid(SizeOfPyramid);
+	gaussFilter->CreateBufferForPyramid(SizeOfPyramid);
 	subtract->CreateBufferForPyramid(SizeOfPyramid);
 
 
-	cmBufPyramidGauss = meanFilter->cmBufPyramid;
+	cmBufPyramidGauss = gaussFilter->cmBufPyramid;
 	cmBufPyramidDOG = subtract->cmBufPyramid;
 
 	int offset = 0;
@@ -167,11 +167,11 @@ Builds Gaussian scale space pyramid from an image
 		{
 			if( o == 0  &&  i == 0 )
 			{
-				meanFilter->SendImageToBufPyramid(imgArray[o], offset);
+				GaussFilter->SendImageToBufPyramid(imgArray[o], offset);
 			} else if(i == 0)
 			{
 				imgArray[o] = Downsample( imgArray[o-1] );
-				meanFilter->SendImageToBufPyramid(imgArray[o], offset);
+				GaussFilter->SendImageToBufPyramid(imgArray[o], offset);
 			}
 			offset += sizeOfImages[o];
 		}
@@ -188,17 +188,17 @@ Builds Gaussian scale space pyramid from an image
 
 			if( o == 0  &&  i == 0 )
 			{
-				meanFilter->SendImageToPyramid(imgArray[o], OffsetAct);
+				gaussFilter->SendImageToPyramid(imgArray[o], OffsetAct);
 			} else if(i == 0)
 			{
-				meanFilter->ReceiveImageFromPyramid(imgArray[o-1], OffsetPrev);
+				gaussFilter->ReceiveImageFromPyramid(imgArray[o-1], OffsetPrev);
 				imgArray[o] = Downsample( imgArray[o-1] );
-				meanFilter->SendImageToPyramid(imgArray[o], OffsetAct);
+				gaussFilter->SendImageToPyramid(imgArray[o], OffsetAct);
 			}
 
 			if(i > 0 )
 			{
-				meanFilter->Process( sig[i], imgArray[o]->width, imgArray[o]->height, OffsetPrev, OffsetAct);
+				gaussFilter->Process( sig[i], imgArray[o]->width, imgArray[o]->height, OffsetPrev, OffsetAct);
 				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct);
 			}
 			OffsetPrev = OffsetAct;

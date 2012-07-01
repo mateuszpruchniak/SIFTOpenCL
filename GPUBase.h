@@ -207,7 +207,7 @@ class GPUBase
 
 	char* LoadProgramSource(const char* cFilename, const char* cPreamble, size_t* szFinalLength);
 
-	int GetKernelSize(double sigma, double cut_off=0.001);
+	
 };
 
 

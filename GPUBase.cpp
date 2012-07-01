@@ -121,21 +121,6 @@ bool GPU::CreateBuffersOut( int maxBufferSize, int numbOfBuffers)
 }
 
 
-
-int GPUBase::GetKernelSize(double sigma, double cut_off)
-{
-	unsigned int i;
-	for (i=0;i<MAX_KERNEL_SIZE;i++)
-		if (exp(-((double)(i*i))/(2.0*sigma*sigma))<cut_off)
-			break;
-	unsigned int size = 2*i-1;
-	return size;
-}
-
-
-
-
-
 void GPUBase::CheckError( int code )
 {
 	switch(code)
