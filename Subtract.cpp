@@ -15,28 +15,6 @@ Subtract::~Subtract(void)
 }
 
 
-bool Subtract::Process()
-{
-	/*size_t GPULocalWorkSize[2];
-	GPULocalWorkSize[0] = iBlockDimX;
-	GPULocalWorkSize[1] = iBlockDimY;
-	GPUGlobalWorkSize[0] = RoundUpGroupDim((int)GPULocalWorkSize[0], (int)imageWidth);
-	GPUGlobalWorkSize[1] = RoundUpGroupDim((int)GPULocalWorkSize[1], (int)imageHeight);
-	
-	int iLocalPixPitch = iBlockDimX + 2;
-	GPUError = clSetKernelArg(GPUKernel, 0, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListIn[0]);
-	GPUError = clSetKernelArg(GPUKernel, 1, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListIn[1]);
-	GPUError = clSetKernelArg(GPUKernel, 2, sizeof(cl_mem), (void*)&GPU::getInstance().buffersListOut[0]);
-	GPUError |= clSetKernelArg(GPUKernel, 3, sizeof(cl_uint), (void*)&imageWidth);
-	GPUError |= clSetKernelArg(GPUKernel, 4, sizeof(cl_uint), (void*)&imageHeight);
-	if(GPUError) return false;
-
-	if(clEnqueueNDRangeKernel( GPUCommandQueue, GPUKernel, 2, NULL, GPUGlobalWorkSize, GPULocalWorkSize, 0, NULL, NULL)) return false;
-	return true;*/
-
-	return false;
-}
-
 bool Subtract::Process(cl_mem gaussPyr, int imageWidth, int imageHeight, int OffsetPrev, int OffsetAct)
 {
 

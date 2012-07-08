@@ -223,7 +223,6 @@
     <ClInclude Include="GPUBase.h" />
     <ClInclude Include="imgfeatures.h" />
     <ClInclude Include="kdtree.h" />
-    <ClInclude Include="KeyPoint.h" />
     <ClInclude Include="GaussFilter.h" />
     <ClInclude Include="minpq.h" />
     <ClInclude Include="PyramidProcess.h" />

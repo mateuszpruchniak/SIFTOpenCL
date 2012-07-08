@@ -156,9 +156,6 @@ Builds Gaussian scale space pyramid from an image
 	subtract->CreateBufferForPyramid(SizeOfPyramid);
 
 
-	cmBufPyramidGauss = gaussFilter->cmBufPyramid;
-	cmBufPyramidDOG = subtract->cmBufPyramid;
-
 	int offset = 0;
 
 	/*for( o = 0; o < octvs; o++ )
@@ -199,7 +196,7 @@ Builds Gaussian scale space pyramid from an image
 			if(i > 0 )
 			{
 				gaussFilter->Process( sig[i], imgArray[o]->width, imgArray[o]->height, OffsetPrev, OffsetAct);
-				subtract->Process(cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct);
+				subtract->Process(gaussFilter->cmBufPyramid, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct);
 			}
 			OffsetPrev = OffsetAct;
 			OffsetAct += sizeOfImages[o];
@@ -292,7 +289,7 @@ Builds Gaussian scale space pyramid from an image
 			if( i > 0 && i <= intvls )
 			{
 				num = 0;
-				detectExt->Process(cmBufPyramidDOG, cmBufPyramidGauss, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, prelim_contr_thr, i, o, keysArray);
+				detectExt->Process(subtract->cmBufPyramid, gaussFilter->cmBufPyramid, imageWidth[o], imageHeight[o], OffsetPrev, OffsetAct, OffsetNext, &num, prelim_contr_thr, i, o, keysArray);
 				total = features->total;
 				number = num;
 				struct detection_data* ddata;

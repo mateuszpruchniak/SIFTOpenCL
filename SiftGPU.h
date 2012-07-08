@@ -121,9 +121,6 @@ private:
 	int total;
 	IplImage** imgArray;
 
-	cl_mem cmBufPyramidGauss;
-	cl_mem cmBufPyramidDOG;
-
 	IplImage* CreateInitialImg( IplImage* img, int img_dbl, float sigma );
 	IplImage* ConvertToGray32( IplImage* img );
 	

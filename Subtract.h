@@ -20,6 +20,4 @@ public:
 	* Constructor.
 	*/
 	Subtract();
-	
-	bool Process();
 };
